@@ -68,7 +68,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .kw-hint{border-bottom:1.5px dashed var(--accent);color:var(--accent);cursor:help;position:relative;display:inline;}
 .kw-tooltip{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;white-space:nowrap;z-index:999;box-shadow:var(--shadow-md);pointer-events:none;min-width:max-content;max-width:220px;white-space:normal;text-align:center;}
 .kw-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e293b;}
-.kw-hint:hover .kw-tooltip,.kw-hint:focus .kw-tooltip{display:block;}
+.kw-hint.open .kw-tooltip{display:block;}
 .kw-hint{pointer-events:auto;}
 .question-text .kw-hint{cursor:help;}
 .options{display:flex;flex-direction:column;gap:8px;}
@@ -794,6 +794,12 @@ var BUILTIN=[
 
 renderQuiz();
 renderCS();
+
+document.addEventListener('click',function(e){
+  var hint=e.target.closest('.kw-hint');
+  document.querySelectorAll('.kw-hint.open').forEach(function(el){if(el!==hint)el.classList.remove('open');});
+  if(hint){hint.classList.toggle('open');e.stopPropagation();}
+});
 </script>
 </body>
 </html>
