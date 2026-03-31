@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CCNP Quiz">
+<title>CCNP Practice Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4ff;--surface:#fff;--surface2:#f8faff;--border:#dde3f0;
+  --accent:#2563eb;--accent2:#7c3aed;--accent-light:#eff3ff;
+  --green:#059669;--green-light:#ecfdf5;--green-border:#6ee7b7;
+  --red:#dc2626;--red-light:#fef2f2;--red-border:#fca5a5;
+  --yellow:#d97706;--yellow-light:#fffbeb;
+  --purple:#7c3aed;--purple-light:#f3e8ff;--purple-border:#d8b4fe;
+  --orange:#ea580c;--orange-light:#fff7ed;
+  --text:#111827;--text2:#374151;--muted:#6b7280;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.header{background:#fff;border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:var(--shadow);}
+.header-left{display:flex;align-items:center;gap:11px;}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0;}
+.header h1{font-size:16px;font-weight:800;letter-spacing:-.3px;}
+.header h1 span{color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:10px;}
+.progress-wrap{display:flex;align-items:center;gap:6px;}
+.progress-bar-outer{width:90px;height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
+.progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width .4s ease;}
+.progress-label{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.hint-toggle{display:flex;align-items:center;gap:5px;cursor:pointer;user-select:none;position:relative;z-index:400;padding:4px 8px;border-radius:8px;transition:background .15s;}
+.hint-toggle:hover{background:var(--surface2);}
+.hint-label{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;}
+.toggle-track{width:32px;height:17px;background:var(--border);border-radius:99px;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-track.on{background:var(--accent);}
+.toggle-thumb{width:13px;height:13px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle-track.on .toggle-thumb{left:17px;}
+.tab-bar{background:#fff;border-bottom:1px solid var(--border);display:flex;position:sticky;top:59px;z-index:290;}
+.tab-btn{flex:1;padding:10px 5px;background:none;border:none;border-bottom:2px solid transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-btn:hover:not(.active){color:var(--text2);background:var(--surface2);}
+.quiz-container{max-width:760px;margin:0 auto;padding:18px 14px 80px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.score-banner{display:none;background:#fff;border:1px solid var(--border);border-radius:16px;padding:26px;text-align:center;margin-bottom:22px;box-shadow:var(--shadow-md);animation:fadeIn .5s ease;}
+.score-banner.visible{display:block;}
+.score-num{font-size:52px;font-weight:800;line-height:1;}
+.score-label{font-size:15px;color:var(--muted);margin-top:6px;font-weight:600;}
+.score-sub{font-size:12px;color:var(--muted);margin-top:5px;font-family:'JetBrains Mono',monospace;}
+.score-actions{display:flex;gap:9px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.restart-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:9px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s;}
+.restart-btn:hover{opacity:.85;}
+.question-card{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:20px;margin-bottom:16px;box-shadow:var(--shadow);transition:border-color .3s;animation:slideUp .25s ease;}
+.question-card.answered-correct{border-color:var(--green);}
+.question-card.answered-wrong{border-color:var(--red);}
+.q-meta{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap;}
+.q-num{background:var(--accent-light);border:1px solid #c7d7ff;border-radius:5px;padding:2px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;}
+.q-tag{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;}
+.multi-tag{background:var(--yellow-light);border-color:#fde68a;color:var(--yellow);}
+.dd-tag{background:var(--purple-light);border-color:var(--purple-border);color:var(--purple);}
+.question-text{font-size:15px;font-weight:600;line-height:1.65;margin-bottom:16px;color:var(--text);}
+.kw-hint{border-bottom:1.5px dashed var(--accent);color:var(--accent);cursor:help;position:relative;display:inline;}
+.kw-tooltip{display:none;position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;white-space:nowrap;z-index:999;box-shadow:var(--shadow-md);pointer-events:none;min-width:max-content;max-width:220px;white-space:normal;text-align:center;}
+.kw-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e293b;}
+.kw-hint:hover .kw-tooltip,.kw-hint:focus .kw-tooltip{display:block;}
+.kw-hint{pointer-events:auto;}
+.question-text .kw-hint{cursor:help;}
+.options{display:flex;flex-direction:column;gap:8px;}
+.option{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;user-select:none;}
+.option:hover:not(.disabled){border-color:var(--accent);background:var(--accent-light);transform:translateX(2px);}
+.option.selected{border-color:var(--accent);background:var(--accent-light);}
+.option.correct{border-color:var(--green)!important;background:var(--green-light)!important;}
+.option.wrong{border-color:var(--red)!important;background:var(--red-light)!important;}
+.option.disabled{cursor:default;}
+.option-letter{width:23px;height:23px;min-width:23px;border:1.5px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--muted);transition:all .15s;}
+.option.selected .option-letter{border-color:var(--accent);color:var(--accent);background:#fff;}
+.option.correct .option-letter{border-color:var(--green);color:var(--green);background:#fff;}
+.option.wrong .option-letter{border-color:var(--red);color:var(--red);background:#fff;}
+.option-text{font-size:13px;line-height:1.5;flex:1;color:var(--text2);}
+.option-icon{font-size:13px;margin-left:auto;min-width:15px;text-align:right;}
+.post-actions{display:flex;align-items:center;gap:8px;margin-top:13px;flex-wrap:wrap;}
+.submit-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s,transform .1s;}
+.submit-btn:hover{opacity:.88;transform:translateY(-1px);}
+.submit-btn:disabled{opacity:.35;cursor:default;transform:none;}
+.trick-btn{visibility:hidden;width:0;overflow:hidden;padding:0;border:none;background:transparent;}
+.trick-btn.visible{visibility:visible;width:auto;overflow:visible;display:inline-flex;background:var(--orange-light);border:1.5px solid #fed7aa;color:var(--orange);border-radius:8px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;align-items:center;gap:4px;}
+.trick-btn:hover{background:#ffedd5;border-color:var(--orange);}
+.trick-btn.visible{display:flex;}
+.trick-box{display:none;margin-top:9px;background:var(--orange-light);border:1.5px solid #fed7aa;border-radius:9px;padding:11px 14px;animation:fadeIn .3s ease;}
+.trick-box.visible{display:block;}
+.trick-label{font-size:9px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;font-family:'JetBrains Mono',monospace;}
+.trick-text{font-size:13px;color:#7c2d12;line-height:1.6;font-weight:600;}
+.feedback{margin-top:11px;border-radius:11px;display:none;animation:fadeIn .35s ease;overflow:hidden;}
+.feedback.correct,.feedback.wrong{display:block;}
+.fb-header{display:flex;align-items:center;gap:7px;padding:9px 14px;font-weight:700;font-size:13px;border-radius:11px 11px 0 0;}
+.feedback.correct .fb-header{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);border-bottom:none;}
+.feedback.wrong .fb-header{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);border-bottom:none;}
+.fb-body{padding:12px 14px;border-left:1px solid;border-right:1px solid;border-bottom:1px solid;border-radius:0 0 11px 11px;}
+.feedback.correct .fb-body{background:#f0fdf6;border-color:var(--green-border);}
+.feedback.wrong .fb-body{background:#fff5f5;border-color:var(--red-border);}
+.exp-label{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
+.feedback.correct .exp-label{color:var(--green);}
+.feedback.wrong .exp-label{color:var(--red);}
+.exp-text{color:var(--text2);font-size:13px;line-height:1.7;}
+.correct-pill{display:inline-block;margin-top:8px;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);border-radius:5px;padding:2px 9px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
+.dd-pool-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'JetBrains Mono',monospace;}
+.dd-pool{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.dd-chip{display:inline-flex;align-items:center;background:var(--accent-light);border:1.5px solid #c7d7ff;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer;user-select:none;transition:all .15s;color:var(--text2);}
+.dd-chip:hover{border-color:var(--accent);}
+.dd-chip.selected-chip{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.3);}
+.dd-chip.placed{opacity:.28;cursor:default;pointer-events:none;}
+.dd-targets{display:flex;flex-direction:column;gap:9px;}
+.dd-bucket{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;}
+.dd-bucket-label{background:var(--yellow-light);border-bottom:1px solid #fde68a;padding:6px 12px;font-size:11px;font-weight:700;color:var(--yellow);}
+.dd-slots{display:flex;flex-direction:column;gap:5px;padding:8px;}
+.dd-slot{min-height:36px;border:1.5px dashed var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;padding:5px 8px;text-align:center;}
+.dd-slot:hover:not(.locked){border-color:var(--accent);background:var(--accent-light);}
+.dd-slot.slot-filled{border-style:solid;border-color:#c7d7ff;background:var(--accent-light);cursor:pointer;}
+.dd-slot.correct-slot{border-color:var(--green)!important;border-style:solid!important;background:var(--green-light)!important;color:var(--green)!important;font-weight:600;}
+.dd-slot.wrong-slot{border-color:var(--red)!important;border-style:solid!important;background:var(--red-light)!important;color:var(--red)!important;}
+.dd-slot.locked{cursor:default;}
+.match-row{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.match-lbl{font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;font-size:11px;min-width:48px;}
+.match-sel{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;outline:none;transition:border-color .15s;}
+.match-sel:focus{border-color:var(--accent);}
+.match-sel.c-match{border-color:var(--green);background:var(--green-light);}
+.match-sel.w-match{border-color:var(--red);background:var(--red-light);}
+.final-wrap{text-align:center;padding:12px 0 40px;}
+.final-btn{background:linear-gradient(135deg,var(--green),#047857);color:#fff;border:none;border-radius:11px;padding:13px 38px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s,transform .1s;}
+.final-btn:hover{opacity:.88;transform:translateY(-2px);}
+/* CHEAT SHEET */
+.cs-hero{background:linear-gradient(135deg,var(--accent-light),#f3e8ff);border:1.5px solid #c7d7ff;border-radius:13px;padding:18px 20px;margin-bottom:16px;}
+.cs-hero h2{font-size:18px;font-weight:800;margin-bottom:4px;color:var(--accent);}
+.cs-hero p{font-size:12px;color:var(--text2);line-height:1.6;}
+.cs-search-wrap{position:relative;margin-bottom:16px;}
+.cs-search-wrap::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+.cs-search{width:100%;padding:10px 12px 10px 36px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;background:#fff;transition:border-color .15s;box-shadow:var(--shadow);}
+.cs-search:focus{border-color:var(--accent);}
+.cs-cat{margin-bottom:20px;}
+.cs-cat-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.cs-cat-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.cs-cat-count{font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:1px 7px;font-family:'JetBrains Mono',monospace;}
+.cs-table{width:100%;border-collapse:collapse;background:#fff;border-radius:11px;overflow:hidden;box-shadow:var(--shadow);border:1.5px solid var(--border);}
+.cs-table thead tr{background:var(--surface2);}
+.cs-table thead th{padding:8px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);}
+.cs-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+.cs-table tbody tr:last-child{border-bottom:none;}
+.cs-table tbody tr:hover{background:var(--surface2);}
+.cs-table tbody tr.hidden{display:none;}
+.cs-td-kw{padding:10px 14px;font-size:12px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;white-space:nowrap;width:30%;}
+.cs-td-val{padding:10px 14px;font-size:13px;color:var(--text2);font-weight:600;width:35%;}
+.cs-td-hint{padding:10px 14px;font-size:12px;color:var(--muted);font-style:italic;width:35%;}
+@media(max-width:600px){.cs-td-hint{display:none;}}
+/* UPLOAD */
+.upload-sec{background:#fff;border:1.5px solid var(--border);border-radius:13px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
+.upload-sec h2{font-size:15px;font-weight:700;margin-bottom:5px;}
+.upload-sec p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.tmpl-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px;font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.8;color:var(--text2);margin-bottom:11px;overflow-x:auto;white-space:pre;}
+.paste-area{width:100%;min-height:130px;padding:11px;font-size:12px;font-family:'JetBrains Mono',monospace;border:1.5px solid var(--border);border-radius:8px;resize:vertical;outline:none;color:var(--text);background:var(--surface2);transition:border-color .15s;line-height:1.6;}
+.paste-area:focus{border-color:var(--accent);}
+.parse-btn{margin-top:9px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s;}
+.parse-btn:hover{opacity:.88;}
+.parse-st{margin-top:9px;font-size:12px;font-weight:600;min-height:16px;}
+.parse-st.ok{color:var(--green);}
+.parse-st.err{color:var(--red);}
+.qli{display:flex;align-items:center;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px;gap:8px;}
+.qli-text{flex:1;color:var(--text2);}
+.qli-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-light);border-radius:4px;padding:2px 6px;white-space:nowrap;}
+.del-btn{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:2px 5px;border-radius:5px;transition:background .15s;flex-shrink:0;}
+.del-btn:hover{background:var(--red-light);}
+/* PWA */
+.pwa-sec{background:linear-gradient(135deg,var(--accent-light),#f3e8ff);border:1.5px solid #c7d7ff;border-radius:13px;padding:20px;box-shadow:var(--shadow);}
+.pwa-sec h2{font-size:15px;font-weight:700;margin-bottom:7px;color:var(--accent);}
+.pwa-sec p{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:8px;}
+.pwa-steps{list-style:none;padding:0;margin-bottom:11px;}
+.pwa-steps li{font-size:12px;color:var(--text2);padding:4px 0 4px 21px;position:relative;line-height:1.5;}
+.pwa-steps li::before{content:attr(data-n);position:absolute;left:0;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+@keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@media(max-width:600px){
+  .header{padding:8px 11px;}
+  .quiz-container{padding:13px 10px 70px;}
+  .progress-bar-outer{width:70px;}
+  .header h1{font-size:13px;}
+  .hint-label{display:none;}
+  .cs-grid{grid-template-columns:1fr;}
+  .tab-btn{font-size:10px;}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-left">
+    <div class="logo">NP</div>
+    <h1>CCNP <span>Quiz</span></h1>
+  </div>
+  <div class="header-right">
+    <div class="hint-toggle" onclick="toggleHints()" title="Hover Hints">
+      <span class="hint-label">Hints</span>
+      <div class="toggle-track" id="hintTrack"><div class="toggle-thumb"></div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 0</div>
+    </div>
+  </div>
+</div>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('quiz',this)">&#x1F4DD; Quiz</button>
+  <button class="tab-btn" onclick="switchTab('cheat',this)">&#x26A1; Cheat Sheet</button>
+  <button class="tab-btn" onclick="switchTab('upload',this)">&#x2795; Add Q</button>
+  <button class="tab-btn" onclick="switchTab('install',this)">&#x1F4F1; Install</button>
+</div>
+<div class="quiz-container">
+  <div class="tab-content active" id="tab-quiz">
+    <div class="score-banner" id="scoreBanner">
+      <div class="score-num" id="scoreNum">--</div>
+      <div class="score-label">Questions Correct</div>
+      <div class="score-sub" id="scoreSub"></div>
+      <div class="score-actions"><button class="restart-btn" onclick="restartQuiz()">&#x21A9; New Shuffle &amp; Restart</button></div>
+    </div>
+    <div id="quizBody"></div>
+    <div class="final-wrap" id="finalWrap" style="display:none;">
+      <button class="final-btn" onclick="finalSubmit()">Submit All &amp; See Score &#x2192;</button>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-cheat">
+    <div class="cs-hero">
+      <h2>&#x26A1; Cheat Sheet</h2>
+      <p>High-probability keyword associations for the exam. Enable <strong>Hints</strong> in the header to see these highlighted inside questions.</p>
+    </div>
+    <div class="cs-search-wrap"><input class="cs-search" id="csSearch" placeholder="Search keywords, associations..." oninput="filterCS(this.value)"></div>
+    <div id="csBody"></div>
+  </div>
+  <div class="tab-content" id="tab-upload">
+    <div class="upload-sec">
+      <h2>&#x2795; Add New Questions</h2>
+      <p>Paste questions below. Separate with <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:10px">---</code> on its own line. Add a <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:10px">TRICK:</code> line for a memory trick.</p>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Multiple Choice</div>
+      <div class="tmpl-box">QUESTION: Which protocol does SD-WAN use for control plane?
+TAG: SD-WAN
+A. OSPF
+B. OMP
+C. BGP
+D. EIGRP
+CORRECT: B
+EXPLANATION_CORRECT: OMP is Cisco's SD-WAN control plane protocol.
+EXPLANATION_WRONG: Correct is B -- OMP (Overlay Management Protocol).
+CORRECT_ANSWER_LABEL: B -- OMP
+TRICK: OMP = SD-WAN's own routing language (like BGP but for SD-WAN)
+---</div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Drag &amp; Drop</div>
+      <div class="tmpl-box">QUESTION: Match the QoS components to their behaviour.
+TAG: QoS
+TYPE: dragdrop
+ITEM1: drops excessive traffic immediately
+ITEM2: buffers excessive traffic
+GROUP1_LABEL: Traffic Policing
+GROUP1_ITEMS: 1
+GROUP2_LABEL: Traffic Shaping
+GROUP2_ITEMS: 2
+EXPLANATION_CORRECT: Policing drops. Shaping buffers.
+EXPLANATION_WRONG: Policing=drops, Shaping=buffers.
+CORRECT_ANSWER_LABEL: Policing=drops, Shaping=buffers
+TRICK: Police punish (drop). Shapers mold gently (buffer).
+---</div>
+      <textarea class="paste-area" id="pasteArea" placeholder="Paste questions here..."></textarea>
+      <button class="parse-btn" onclick="parseAndAdd()">Add Questions</button>
+      <div class="parse-st" id="parseStatus"></div>
+    </div>
+    <div class="upload-sec">
+      <h2>&#x1F4CB; Question Bank (<span id="qCount">0</span> total)</h2>
+      <p>Delete custom questions you no longer need.</p>
+      <div id="qList"></div>
+      <button class="parse-btn" style="background:#dc2626;margin-top:6px;" onclick="clearAll()">&#x1F5D1; Clear Custom</button>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-install">
+    <div class="pwa-sec">
+      <h2>&#x1F4F1; Install on Your Phone</h2>
+      <p>Add to home screen to open like a native app.</p>
+      <p><strong>iPhone (Safari):</strong></p>
+      <ul class="pwa-steps">
+        <li data-n="1.">Open this file in Safari</li>
+        <li data-n="2.">Tap the Share button (box with arrow)</li>
+        <li data-n="3.">Tap Add to Home Screen</li>
+        <li data-n="4.">Tap Add</li>
+      </ul>
+      <p><strong>Android (Chrome):</strong></p>
+      <ul class="pwa-steps">
+        <li data-n="1.">Open in Chrome</li>
+        <li data-n="2.">Tap the 3-dot menu</li>
+        <li data-n="3.">Tap Add to Home screen</li>
+        <li data-n="4.">Tap Add</li>
+      </ul>
+      <p style="font-size:11px;color:var(--muted);margin-top:11px;">Save the HTML file via AirDrop or cloud storage, open in Safari/Chrome, then add to home screen. Custom questions persist in the browser.</p>
+    </div>
+  </div>
+</div>
+<script>
+var ASSOC=[
+  {cat:'SD-WAN Controllers',kw:'vSmart',assoc:'Control Plane — distributes OMP routes & IPsec keys for tunnels'},
+  {cat:'SD-WAN Controllers',kw:'vBond',assoc:'Orchestration Plane — onboards vEdge, NAT detection & traversal'},
+  {cat:'SD-WAN Controllers',kw:'vManage',assoc:'Management Plane — GUI, config, telemetry, monitoring'},
+  {cat:'SD-WAN Controllers',kw:'vEdge',assoc:'Data Plane — forwards traffic, runs localized policies'},
+  {cat:'SD-WAN Controllers',kw:'OMP',assoc:'Overlay Management Protocol — SD-WAN control plane routing'},
+  {cat:'BGP Attributes',kw:'local-preference',assoc:'iBGP — propagates to ALL routers in AS (higher = preferred exit)'},
+  {cat:'BGP Attributes',kw:'Weight',assoc:'BGP — LOCAL to one router only, not advertised to peers'},
+  {cat:'BGP Attributes',kw:'MED',assoc:'BGP — influences INBOUND traffic from neighbouring AS'},
+  {cat:'BGP Attributes',kw:'AS-path',assoc:'BGP — shorter path preferred; used for loop prevention'},
+  {cat:'Automation & APIs',kw:'YANG',assoc:'Data MODELING language for NETCONF and RESTCONF'},
+  {cat:'Automation & APIs',kw:'NETCONF',assoc:'XML config protocol — uses YANG models, TCP/SSH port 830'},
+  {cat:'Automation & APIs',kw:'RESTCONF',assoc:'REST/HTTP version of NETCONF — uses YANG, JSON or XML'},
+  {cat:'Automation & APIs',kw:'SNMP',assoc:'Legacy monitoring — UDP, community strings, MIB database'},
+  {cat:'Automation & APIs',kw:'gRPC',assoc:'High-speed streaming telemetry (Google) — used with model-driven telemetry'},
+  {cat:'Automation & APIs',kw:'OpenConfig',assoc:'Vendor-neutral YANG model standard for network devices'},
+  {cat:'QoS',kw:'Traffic Policing',assoc:'DROPS excess packets immediately — causes TCP retransmission, no delay added'},
+  {cat:'QoS',kw:'Traffic Shaping',assoc:'BUFFERS excess packets — adds delay/jitter, avoids drops'},
+  {cat:'QoS',kw:'DSCP',assoc:'Layer 3 QoS marking — 6-bit field in IP ToS byte'},
+  {cat:'QoS',kw:'LLQ',assoc:'Low Latency Queue — strict priority queue, used for voice/video'},
+  {cat:'QoS',kw:'CBWFQ',assoc:'Class-Based WFQ — minimum bandwidth guarantee per traffic class'},
+  {cat:'Security',kw:'ISE',assoc:'SD-Access — endpoint identity, SGT assignment, policy definition'},
+  {cat:'Security',kw:'NGFW',assoc:'Next-Gen Firewall — adds integrated IPS + application inspection'},
+  {cat:'Security',kw:'SGT',assoc:'Scalable Group Tag — SD-Access group-based policy label (number)'},
+  {cat:'Security',kw:'TACACS+',assoc:'AAA — TCP 49, separates Auth/Authz/Accounting, Cisco proprietary'},
+  {cat:'Security',kw:'RADIUS',assoc:'AAA — UDP 1812/1813, combines Auth+Authz, IETF standard'},
+  {cat:'Security',kw:'BFD',assoc:'Bidirectional Forwarding Detection — sub-second failure detection with routing protocols'},
+  {cat:'SD-Access & LISP',kw:'LISP',assoc:'Location/ID Separation Protocol — maps EID (what) to RLOC (where)'},
+  {cat:'SD-Access & LISP',kw:'EID',assoc:'LISP Endpoint Identifier — the endpoint address (what it is)'},
+  {cat:'SD-Access & LISP',kw:'RLOC',assoc:'LISP Routing Locator — the router address (where it is)'},
+  {cat:'SD-Access & LISP',kw:'ITR',assoc:'LISP Ingress Tunnel Router — receives packets from site-facing interfaces'},
+  {cat:'SD-Access & LISP',kw:'ETR',assoc:'LISP Egress Tunnel Router — registers EID prefixes with map server'},
+  {cat:'SD-Access & LISP',kw:'Map Server',assoc:'LISP — accepts encapsulated map requests from ITRs'},
+  {cat:'SD-Access & LISP',kw:'Map Resolver',assoc:'LISP — learns EID-to-RLOC mappings from ETRs'},
+  {cat:'SD-Access & LISP',kw:'Proxy ETR',assoc:'LISP — receives LISP-site traffic, forwards to non-LISP sites'},
+  {cat:'SD-Access & LISP',kw:'DNA Center',assoc:'SD-Access GUI — manages fabric, LISP/VXLAN control, policy'},
+  {cat:'SD-Access & LISP',kw:'VXLAN',assoc:'SD-Access & DC — Layer 2 overlay encapsulation over IP'},
+  {cat:'Virtualization',kw:'VMX',assoc:'VM configuration file — guest OS settings, hardware config'},
+  {cat:'Virtualization',kw:'VMDK',assoc:'VM virtual disk file — stores the virtual hard drive data'},
+  {cat:'Virtualization',kw:'OVA',assoc:'Open Virtual Appliance — zip archive of VMX + VMDK files'},
+  {cat:'Virtualization',kw:'vNIC',assoc:'Virtual NIC — sends packets from VM to the hypervisor'},
+  {cat:'Routing Protocols',kw:'OSPF',assoc:'Link-state IGP — SPF algorithm, area 0 backbone, LSA flooding'},
+  {cat:'Routing Protocols',kw:'EIGRP',assoc:'Cisco advanced distance-vector — DUAL algorithm, feasible successor'},
+  {cat:'Routing Protocols',kw:'NSF',assoc:'Non-Stop Forwarding — continues forwarding during control plane restart'},
+  {cat:'Routing Protocols',kw:'GR',assoc:'Graceful Restart — signals BGP/OSPF peers during control plane restart'}
+];
+
+var TRICKS={
+  'b0':'Map RESOLVER resolves (learns mappings). Map SERVER serves (accepts requests). Proxy ETR = the bridge to non-LISP world.',
+  'b1':'Police = punish (drop on the spot). Shape = sculpt slowly (buffer it). Only shaping adds delay.',
+  'b2':'Local-pref spreads INSIDE the AS via iBGP. Weight stays LOCAL (one box). Higher local-pref on R4 = all AS 200 prefers R4.',
+  'b3':'netconf-yang = NETCONF command. Interface ACLs are data plane ONLY.',
+  'b4':'SD-WAN = Software-Defined WAN = smart overlay over cheap internet.',
+  'b5':'YANG models, NETCONF transports. Always paired together.',
+  'b6':'AAA order = checking order. No "none" at end = implicit deny if all fail.',
+  'b7':'vSmart=control/keys, vBond=orchestration/onboarding, vManage=management/GUI.',
+  'b8':'ISE = Identity = who are you + what group = SGT. DNA Center manages the fabric.',
+  'b9':'vSmart is the SD-WAN route reflector for OMP. It aggregates and distributes.',
+  'b10':'BFD = fast hello in the FORWARDING plane. Pairs with routing protocols only.',
+  'b11':'FTP = TWO ports: 21 (control) + 20 (data). Both must be blocked. D blocks both.',
+  'b12':'VMX=settings file, VMDK=disk file, OVA=zip of both, vNIC=virtual ethernet card.',
+  'b13':'Endpoint security = ON the device. URL analysis and email ransomware = endpoint-facing.',
+  'b14':'JSON rules: ALWAYS double-quotes, {} = objects, [] = arrays. No exceptions.',
+  'b15':'"Person" key must wrap the array. Hobbies must be an array []. No Person key = wrong.',
+  'b16':'NGFW = old stateful FW + IPS + App inspection. The two NEW things = IPS + App inspection.'
+};
+
+var QUESTIONS=[],activeOrder=[],userAnswers={},submitted={},ddState={};
+var hintsEnabled=false;
+
+function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}return b;}
+function loadCustom(){try{return JSON.parse(localStorage.getItem('ccnp_custom')||'[]');}catch(e){return[];}}
+function saveCustom(qs){localStorage.setItem('ccnp_custom',JSON.stringify(qs));}
+function buildBank(){QUESTIONS=BUILTIN.concat(loadCustom());}
+
+function toggleHints(){
+  hintsEnabled=!hintsEnabled;
+  document.getElementById('hintTrack').classList.toggle('on',hintsEnabled);
+  renderQuiz();
+}
+
+function applyHints(text){
+  if(!hintsEnabled) return escH(text);
+  var kws=ASSOC.map(function(a){return a.kw;}).sort(function(a,b){return b.length-a.length;});
+  var out=escH(text);
+  kws.forEach(function(kw){
+    var entry=ASSOC.find(function(a){return a.kw===kw;});
+    if(!entry) return;
+    var re=new RegExp('(?<![\\w-])('+escRe(kw)+')(?![\\w-])','gi');
+    out=out.replace(re,function(m){
+      return '<span class="kw-hint">'+m+'<span class="kw-tooltip">'+escH(entry.assoc)+'</span></span>';
+    });
+  });
+  return out;
+}
+function escRe(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='upload') renderQList();
+  if(name==='cheat') renderCS();
+}
+
+function renderCS(){
+  var body=document.getElementById('csBody');body.innerHTML='';
+  var cats={};var catOrder=[];
+  ASSOC.forEach(function(a){if(!cats[a.cat]){cats[a.cat]=[];catOrder.push(a.cat);}cats[a.cat].push(a);});
+  catOrder.forEach(function(cat){
+    var items=cats[cat];
+    var sec=document.createElement('div');sec.className='cs-cat';
+    var rows='';
+    items.forEach(function(a){
+      // parse hint from assoc if it contains ' — '
+      var parts=a.assoc.split(' — ');
+      var mainVal=parts[0];var hint=parts.slice(1).join(' — ');
+      rows+='<tr class="cs-row" data-kw="'+escA(a.kw)+'" data-assoc="'+escA(a.assoc)+'">'+
+            '<td class="cs-td-kw">'+escH(a.kw)+'</td>'+
+            '<td class="cs-td-val">'+escH(mainVal)+'</td>'+
+            '<td class="cs-td-hint">'+escH(hint)+'</td>'+
+            '</tr>';
+    });
+    sec.innerHTML='<div class="cs-cat-header"><span class="cs-cat-title">'+escH(cat)+'</span><span class="cs-cat-count">'+items.length+'</span></div>'+
+      '<table class="cs-table"><thead><tr><th>Keyword</th><th>Association</th><th>Memory Hint</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    body.appendChild(sec);
+  });
+}
+
+function filterCS(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('.cs-row').forEach(function(el){
+    var match=q.length===0||(el.dataset.kw||'').toLowerCase().indexOf(q)!==-1||(el.dataset.assoc||'').toLowerCase().indexOf(q)!==-1;
+    el.classList.toggle('hidden',!match);
+  });
+  document.querySelectorAll('.cs-cat').forEach(function(cat){
+    cat.style.display=cat.querySelectorAll('.cs-row:not(.hidden)').length>0?'':'none';
+  });
+}
+
+function renderQuiz(){
+  buildBank();
+  activeOrder=shuffle(QUESTIONS);
+  userAnswers={};submitted={};ddState={};
+  var body=document.getElementById('quizBody');body.innerHTML='';
+  activeOrder.forEach(function(q,idx){
+    var card=document.createElement('div');
+    card.className='question-card';card.id='card-'+q.id;
+    card.innerHTML=buildQ(q,idx+1);
+    body.appendChild(card);
+  });
+  document.getElementById('finalWrap').style.display='block';
+  document.getElementById('scoreBanner').classList.remove('visible');
+  updateProgress();
+  attachMC();
+}
+
+function buildQ(q,num){
+  var tag='';
+  if(q.type==='dragdrop') tag='<span class="q-tag dd-tag">Tap to Place</span>';
+  if(q.type==='multi') tag='<span class="q-tag multi-tag">Choose Two</span>';
+  var html='<div class="q-meta"><span class="q-num">Question '+num+'</span><span class="q-tag">'+escH(q.tag)+'</span>'+tag+'</div>'+
+           '<div class="question-text">'+applyHints(q.text)+'</div>';
+  if(q.type==='single'||q.type==='multi') html+=buildMC(q);
+  else if(q.type==='matching') html+=buildMatch(q);
+  else if(q.type==='dragdrop') html+=buildDD(q);
+  html+='<div class="feedback" id="fb-'+q.id+'"></div>';
+  html+='<div class="trick-box" id="tb-'+q.id+'"><div class="trick-label">&#x1F9E0; Memory Trick</div><div class="trick-text" id="tt-'+q.id+'"></div></div>';
+  return html;
+}
+
+function buildMC(q){
+  var opts=shuffle(q.options);var html='<div class="options">';
+  opts.forEach(function(o,i){
+    var d=String.fromCharCode(65+i);
+    html+='<div class="option" data-qid="'+q.id+'" data-letter="'+o.letter+'">'+
+          '<div class="option-letter">'+d+'</div>'+
+          '<div class="option-text">'+escH(o.text)+'</div>'+
+          '<div class="option-icon"></div></div>';
+  });
+  html+='</div>';
+  var fn=q.type==='single'?"submitSingle('"+q.id+"')"  :"submitMulti('"+q.id+"')";
+  html+='<div class="post-actions">'+
+        '<button class="submit-btn" id="sb-'+q.id+'" onclick="'+fn+'" disabled>Check Answer</button>'+
+        '<button class="trick-btn" id="tr-'+q.id+'" onclick="showTrick(\''+q.id+'\')">&#x1F9E0; Trick</button>'+
+        '</div>';
+  return html;
+}
+
+function buildMatch(q){
+  var descs=q.pairs.map(function(p){return p.description;});
+  var comps=q.pairs.map(function(p){return p.component;});
+  var shuf=shuffle(descs);
+  var html='<div style="margin-bottom:11px;">';
+  comps.forEach(function(c){
+    html+='<div class="match-row"><div class="match-lbl">'+escH(c)+'</div>'+
+          '<select class="match-sel" id="ms-'+q.id+'-'+c+'"><option value="">-- select --</option>';
+    shuf.forEach(function(d,i){html+='<option value="'+i+'">'+escH(d)+'</option>';});
+    html+='</select></div>';
+  });
+  html+='</div><input type="hidden" id="msh-'+q.id+'" value=\''+JSON.stringify(shuf)+'\'>';
+  html+='<div class="post-actions">'+
+        '<button class="submit-btn" id="sb-'+q.id+'" onclick="submitMatch(\''+q.id+'\')">Check Answers</button>'+
+        '<button class="trick-btn" id="tr-'+q.id+'" onclick="showTrick(\''+q.id+'\')">&#x1F9E0; Trick</button>'+
+        '</div>';
+  return html;
+}
+
+function buildDD(q){
+  ddState[q.id]={selected:null,slots:{}};
+  q.groups.forEach(function(g,gi){ddState[q.id].slots[gi]=[];});
+  var items=shuffle(q.items);
+  var html='<div class="dd-pool-label">&#x1F449; Tap a description chip, then tap a slot to place it</div>'+
+           '<div class="dd-pool" id="pool-'+q.id+'">';
+  items.forEach(function(it){
+    html+='<div class="dd-chip" id="chip-'+q.id+'-'+it.num+'" onclick="chipClick(\''+q.id+'\','+it.num+')">'+escH(it.text)+'</div>';
+  });
+  html+='</div><div class="dd-targets">';
+  q.groups.forEach(function(g,gi){
+    html+='<div class="dd-bucket"><div class="dd-bucket-label">'+escH(g.label)+'</div><div class="dd-slots">';
+    for(var s=0;s<g.correct.length;s++){
+      html+='<div class="dd-slot" id="sl-'+q.id+'-'+gi+'-'+s+'" onclick="slotClick(\''+q.id+'\','+gi+','+s+')">tap to place</div>';
+    }
+    html+='</div></div>';
+  });
+  html+='</div><div class="post-actions">'+
+        '<button class="submit-btn" id="sb-'+q.id+'" onclick="submitDD(\''+q.id+'\')">Check Answers</button>'+
+        '<button class="trick-btn" id="tr-'+q.id+'" onclick="showTrick(\''+q.id+'\')">&#x1F9E0; Trick</button>'+
+        '</div>';
+  return html;
+}
+
+function chipClick(qid,num){
+  if(submitted[qid]) return;
+  var st=ddState[qid],chip=document.getElementById('chip-'+qid+'-'+num);
+  if(!chip||chip.classList.contains('placed')) return;
+  if(st.selected===num){st.selected=null;chip.classList.remove('selected-chip');}
+  else{
+    if(st.selected!==null){var p=document.getElementById('chip-'+qid+'-'+st.selected);if(p)p.classList.remove('selected-chip');}
+    st.selected=num;chip.classList.add('selected-chip');
+  }
+}
+function slotClick(qid,gi,si){
+  if(submitted[qid]) return;
+  var st=ddState[qid],slot=document.getElementById('sl-'+qid+'-'+gi+'-'+si);
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  if(slot.classList.contains('slot-filled')){
+    var en=parseInt(slot.dataset.itemNum);
+    slot.classList.remove('slot-filled');slot.dataset.itemNum='';slot.innerHTML='tap to place';
+    var arr=st.slots[gi];var idx=arr.indexOf(en);if(idx!==-1)arr.splice(idx,1);
+    var rc=document.getElementById('chip-'+qid+'-'+en);if(rc)rc.classList.remove('placed','selected-chip');
+    return;
+  }
+  if(st.selected===null) return;
+  var num=st.selected;
+  if(st.slots[gi].length>=q.groups[gi].correct.length) return;
+  st.slots[gi].push(num);slot.dataset.itemNum=num;slot.classList.add('slot-filled');
+  var itText=q.items.find(function(it){return it.num===num;});
+  slot.innerHTML='<span style="font-size:12px;color:var(--text);font-weight:500">'+escH(itText?itText.text:'')+'</span>';
+  var chip=document.getElementById('chip-'+qid+'-'+num);
+  if(chip){chip.classList.remove('selected-chip');chip.classList.add('placed');}
+  st.selected=null;
+}
+
+function showTrick(qid){
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  var trick=TRICKS[qid]||(q&&q.trick)||'No trick stored for this question yet.';
+  document.getElementById('tt-'+qid).textContent=trick;
+  document.getElementById('tb-'+qid).classList.add('visible');
+  var btn=document.getElementById('tr-'+qid);if(btn)btn.style.display='none';
+}
+
+function revealTrickBtn(qid){
+  var btn=document.getElementById('tr-'+qid);if(btn)btn.classList.add('visible');
+}
+
+function submitSingle(qid){
+  if(submitted[qid]) return;submitted[qid]=true;
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  var ans=userAnswers[qid],ok=ans===q.correct;
+  document.querySelectorAll('.option[data-qid="'+qid+'"]').forEach(function(o){
+    o.classList.add('disabled');
+    if(o.dataset.letter===q.correct){o.classList.add('correct');o.querySelector('.option-icon').textContent='checkmark';}
+    else if(o.dataset.letter===ans&&!ok){o.classList.add('wrong');o.querySelector('.option-icon').textContent='x';}
+  });
+  showFB(qid,ok,q.feedback);
+  document.getElementById('sb-'+qid).style.display='none';
+  revealTrickBtn(qid);
+  document.getElementById('card-'+qid).classList.add(ok?'answered-correct':'answered-wrong');
+  updateProgress();
+}
+function submitMulti(qid){
+  if(submitted[qid]) return;submitted[qid]=true;
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  var sel=userAnswers[qid]||[];
+  var ok=q.correct.length===sel.length&&q.correct.every(function(c){return sel.indexOf(c)!==-1;});
+  document.querySelectorAll('.option[data-qid="'+qid+'"]').forEach(function(o){
+    o.classList.add('disabled');
+    if(q.correct.indexOf(o.dataset.letter)!==-1){o.classList.add('correct');o.querySelector('.option-icon').textContent='checkmark';}
+    else if(sel.indexOf(o.dataset.letter)!==-1){o.classList.add('wrong');o.querySelector('.option-icon').textContent='x';}
+  });
+  showFB(qid,ok,q.feedback);
+  document.getElementById('sb-'+qid).style.display='none';
+  revealTrickBtn(qid);
+  document.getElementById('card-'+qid).classList.add(ok?'answered-correct':'answered-wrong');
+  updateProgress();
+}
+function submitMatch(qid){
+  if(submitted[qid]) return;submitted[qid]=true;
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  var shuf=JSON.parse(document.getElementById('msh-'+qid).value);
+  var ok=true;
+  q.pairs.forEach(function(p){
+    var el=document.getElementById('ms-'+qid+'-'+p.component);if(!el)return;
+    var chosen=shuf[parseInt(el.value)];
+    if(chosen===p.description)el.classList.add('c-match');
+    else{el.classList.add('w-match');ok=false;}
+    el.disabled=true;
+  });
+  showFB(qid,ok,q.feedback);
+  document.getElementById('sb-'+qid).style.display='none';
+  revealTrickBtn(qid);
+  document.getElementById('card-'+qid).classList.add(ok?'answered-correct':'answered-wrong');
+  updateProgress();
+}
+function submitDD(qid){
+  if(submitted[qid]) return;submitted[qid]=true;
+  var q=QUESTIONS.find(function(x){return x.id===qid;});
+  var st=ddState[qid];var allOk=true;
+  q.groups.forEach(function(g,gi){
+    var placed=st.slots[gi]||[];
+    var ok=g.correct.length===placed.length&&g.correct.every(function(n){return placed.indexOf(n)!==-1;});
+    if(!ok)allOk=false;
+    for(var s=0;s<g.correct.length;s++){
+      var sl=document.getElementById('sl-'+qid+'-'+gi+'-'+s);
+      if(sl){sl.classList.add('locked');sl.classList.add(ok?'correct-slot':'wrong-slot');}
+    }
+  });
+  q.items.forEach(function(it){
+    var chip=document.getElementById('chip-'+qid+'-'+it.num);if(!chip)return;
+    chip.classList.remove('selected-chip');chip.style.pointerEvents='none';
+    var found=q.groups.some(function(g,gi){return(st.slots[gi]||[]).indexOf(it.num)!==-1;});
+    if(!found)chip.style.opacity='0.35';
+  });
+  showFB(qid,allOk,q.feedback);
+  document.getElementById('sb-'+qid).style.display='none';
+  revealTrickBtn(qid);
+  document.getElementById('card-'+qid).classList.add(allOk?'answered-correct':'answered-wrong');
+  updateProgress();
+}
+
+function showFB(qid,ok,feedback){
+  var el=document.getElementById('fb-'+qid);
+  el.className='feedback '+(ok?'correct':'wrong');
+  var body=ok?feedback.correct:feedback.wrong;
+  var pill=(!ok&&feedback.correctAnswer)?'<br><span class="correct-pill">&#x2713; '+escH(feedback.correctAnswer)+'</span>':'';
+  el.innerHTML='<div class="fb-header">'+(ok?'&#x2713; Correct!':'&#x2717; Incorrect')+'</div>'+
+               '<div class="fb-body"><div class="exp-label">Explanation</div>'+
+               '<div class="exp-text">'+escH(body)+pill+'</div></div>';
+}
+
+function finalSubmit(){
+  activeOrder.forEach(function(q){
+    if(!submitted[q.id]){
+      if(q.type==='single')submitSingle(q.id);
+      else if(q.type==='multi')submitMulti(q.id);
+      else if(q.type==='matching')submitMatch(q.id);
+      else if(q.type==='dragdrop')submitDD(q.id);
+    }
+  });
+  var total=activeOrder.length;
+  var correct=activeOrder.filter(function(q){return document.getElementById('card-'+q.id).classList.contains('answered-correct');}).length;
+  var pct=Math.round(correct/total*100);
+  document.getElementById('scoreNum').textContent=correct+' / '+total;
+  document.getElementById('scoreNum').style.color=pct>=70?'var(--green)':'var(--red)';
+  document.getElementById('scoreSub').textContent=pct+'% -- '+(pct>=70?'Pass! Great work.':'Keep going!');
+  document.getElementById('scoreBanner').classList.add('visible');
+  document.getElementById('finalWrap').style.display='none';
+  document.getElementById('scoreBanner').scrollIntoView({behavior:'smooth'});
+}
+function restartQuiz(){renderQuiz();window.scrollTo({top:0,behavior:'smooth'});}
+function updateProgress(){
+  var done=Object.keys(submitted).length,total=activeOrder.length;
+  document.getElementById('progressBar').style.width=(total?done/total*100:0)+'%';
+  document.getElementById('progressLabel').textContent=done+' / '+total;
+}
+function attachMC(){
+  document.querySelectorAll('.option').forEach(function(el){
+    el.addEventListener('click',function(){
+      var qid=this.dataset.qid;if(submitted[qid])return;
+      var q=QUESTIONS.find(function(x){return x.id===qid;});
+      if(q.type==='single'){
+        document.querySelectorAll('.option[data-qid="'+qid+'"]').forEach(function(o){o.classList.remove('selected');});
+        this.classList.add('selected');userAnswers[qid]=this.dataset.letter;
+        document.getElementById('sb-'+qid).disabled=false;
+      }else if(q.type==='multi'){
+        this.classList.toggle('selected');
+        var sel=Array.from(document.querySelectorAll('.option[data-qid="'+qid+'"].selected'));
+        userAnswers[qid]=sel.map(function(o){return o.dataset.letter;});
+        document.getElementById('sb-'+qid).disabled=sel.length===0;
+      }
+    });
+  });
+}
+
+function parseAndAdd(){
+  var raw=document.getElementById('pasteArea').value.trim();
+  var status=document.getElementById('parseStatus');
+  if(!raw){status.className='parse-st err';status.textContent='Nothing to parse.';return;}
+  var blocks=raw.split(/\n---\n?/).map(function(b){return b.trim();}).filter(Boolean);
+  var results=[],errors=[];
+  blocks.forEach(function(block,bi){
+    try{
+      var lines=block.split('\n').map(function(l){return l.trim();});
+      function get(k){var l=lines.find(function(x){return x.indexOf(k+':')===0;});return l?l.slice(k.length+1).trim():'';}
+      var qText=get('QUESTION'),tag=get('TAG')||'General',type=get('TYPE').toLowerCase();
+      var expC=get('EXPLANATION_CORRECT'),expW=get('EXPLANATION_WRONG'),label=get('CORRECT_ANSWER_LABEL'),trick=get('TRICK');
+      if(!qText)throw new Error('Missing QUESTION');
+      var qobj;
+      if(type==='dragdrop'){
+        var items=[];for(var n=1;n<=20;n++){var iv=get('ITEM'+n);if(!iv)break;items.push({num:n,text:iv});}
+        if(items.length<2)throw new Error('Need ITEM1, ITEM2...');
+        var groups=[];for(var g=1;g<=20;g++){var gl=get('GROUP'+g+'_LABEL');if(!gl)break;var gi=get('GROUP'+g+'_ITEMS');if(!gi)throw new Error('Missing GROUP'+g+'_ITEMS');groups.push({label:gl,correct:gi.split(',').map(function(s){return parseInt(s.trim());})});}
+        if(!groups.length)throw new Error('Need GROUP1_LABEL + GROUP1_ITEMS');
+        qobj={id:'c_'+Date.now()+'_'+bi,type:'dragdrop',originalNum:'Custom',tag:tag,text:qText,items:items,groups:groups,feedback:{correct:expC||'Correct!',wrong:expW||'Incorrect.',correctAnswer:label||''}};
+      }else{
+        var cr=get('CORRECT');if(!cr)throw new Error('Missing CORRECT');
+        var opts=lines.filter(function(l){return /^[A-E]\.\s/.test(l);});if(opts.length<2)throw new Error('Need 2+ options');
+        var options=opts.map(function(l){return{letter:l[0],text:l.slice(3).trim()};});
+        var ca=cr.split(',').map(function(s){return s.trim().toUpperCase();});
+        qobj={id:'c_'+Date.now()+'_'+bi,type:ca.length>1?'multi':'single',originalNum:'Custom',tag:tag,text:qText,options:options,correct:ca.length>1?ca:ca[0],feedback:{correct:expC||'Correct!',wrong:expW||'Incorrect.',correctAnswer:label||cr}};
+      }
+      if(trick)qobj.trick=trick;
+      results.push(qobj);
+    }catch(e){errors.push('Block '+(bi+1)+': '+e.message);}
+  });
+  if(!results.length){status.className='parse-st err';status.textContent='No valid questions. '+errors.join(' | ');return;}
+  saveCustom(loadCustom().concat(results));
+  document.getElementById('pasteArea').value='';
+  status.className='parse-st ok';
+  status.textContent='Added '+results.length+' question(s)!'+(errors.length?' ('+errors.length+' skipped)':'');
+  renderQuiz();renderQList();
+}
+
+function renderQList(){
+  buildBank();
+  document.getElementById('qCount').textContent=QUESTIONS.length;
+  var list=document.getElementById('qList');list.innerHTML='';
+  QUESTIONS.forEach(function(q,i){
+    var isC=!BUILTIN.find(function(b){return b.id===q.id;});
+    var prev=(q.text.length>65?q.text.slice(0,65)+'...':q.text).replace(/\n/g,' ');
+    var ddb=q.type==='dragdrop'?'<span style="background:#f0e6ff;color:#7c3aed;border:1px solid #d8b4fe;font-size:9px;padding:2px 5px;border-radius:3px;font-family:JetBrains Mono,monospace;font-weight:700;white-space:nowrap">D&amp;D</span>':'';
+    var item=document.createElement('div');item.className='qli';
+    item.innerHTML='<div class="qli-text"><strong>Q'+(i+1)+'.</strong> '+escH(prev)+'</div>'+ddb+
+      '<span class="qli-tag">'+escH(q.tag)+'</span>'+
+      (isC?'<button class="del-btn" onclick="deleteQ(\''+q.id+'\')">&#x2715;</button>':
+           '<span style="font-size:9px;color:var(--muted);padding:0 4px">built-in</span>');
+    list.appendChild(item);
+  });
+}
+function deleteQ(id){saveCustom(loadCustom().filter(function(q){return q.id!==id;}));renderQuiz();renderQList();}
+function clearAll(){if(!confirm('Clear all custom questions?'))return;saveCustom([]);renderQuiz();renderQList();}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function escA(s){return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+var BUILTIN=[
+  {id:'b0',type:'dragdrop',originalNum:'Q22',tag:'LISP',text:'Drag and drop the LISP components onto the function they perform. Tap a chip to select it, then tap a slot to place it. Not all options are used.',items:[{num:1,text:'accepts LISP encapsulated map requests'},{num:2,text:'None (unused option)'},{num:3,text:'learns of EID prefix mapping entries from an ETR'},{num:4,text:'receives traffic from LISP sites and sends it to non-LISP sites'},{num:5,text:'receives packets from site-facing interfaces'}],groups:[{label:'LISP map server',correct:[1]},{label:'LISP route reflector',correct:[2]},{label:'LISP map resolver',correct:[3]},{label:'LISP proxy ETR',correct:[4]},{label:'LISP ITR',correct:[5]}],feedback:{correct:'All correct! Map server=encapsulated requests, route reflector=None/unused, map resolver=learns EID from ETR, proxy ETR=LISP to non-LISP, ITR=site-facing interfaces.',wrong:'map server=accepts encapsulated requests | route reflector=None(unused) | map resolver=learns EID from ETR | proxy ETR=LISP-to-non-LISP | ITR=site-facing interfaces.',correctAnswer:'map server=1 | route reflector=2 | map resolver=3 | proxy ETR=4 | ITR=5'}},
+  {id:'b1',type:'dragdrop',originalNum:'Q1',tag:'QoS',text:'Drag and drop the QoS descriptions onto the correct component. Tap a chip to select, then tap a slot.',items:[{num:1,text:'causes TCP retransmission when traffic is dropped'},{num:2,text:'buffers excessive traffic'},{num:3,text:'introduces no delay and jitter'},{num:4,text:'introduces delay and jitter'},{num:5,text:'drops excessive traffic'},{num:6,text:'typically delays, rather than drops traffic'}],groups:[{label:'Traffic Policing',correct:[1,3,5]},{label:'Traffic Shaping',correct:[2,4,6]}],feedback:{correct:'Traffic Policing: drops immediately (TCP retransmit, no delay, drops excess). Traffic Shaping: buffers (adds delay/jitter, delays rather than drops).',wrong:'Policing(1,3,5)=drops immediately. Shaping(2,4,6)=buffers/delays.',correctAnswer:'Policing:1,3,5 | Shaping:2,4,6'}},
+  {id:'b2',type:'single',originalNum:'Q9',tag:'BGP',text:'An engineer must ensure all traffic leaving AS 200 chooses Link 2 as the exit point. AS 100: R1,R2. AS 200: R3,R4. Link 1: R1-R3. Link 2: R2-R4. Which configuration accomplishes this?',options:[{letter:'A',text:'R3(config-router)#neighbor 10.1.1.1 weight 200'},{letter:'B',text:'R3(config-router)#bgp default local-preference 200'},{letter:'C',text:'R4(config-router)#bgp default local-preference 200'},{letter:'D',text:'R4(config-router)#neighbor 10.2.2.2 weight 200'}],correct:'C',feedback:{correct:'Local-preference propagates via iBGP to all AS 200 routers. Setting it on R4 (Link 2) makes R3 also prefer Link 2.',wrong:'Local-preference spreads within the AS via iBGP. Weight is local to one router only.',correctAnswer:'C -- R4(config-router)#bgp default local-preference 200'}},
+  {id:'b3',type:'single',originalNum:'Q25',tag:'NETCONF',text:'An engineer must configure R1 to allow only NETCONF connections from the management VLAN (172.16.2.0/24). The ACL "netconfacl" already exists. Which command completes this?',options:[{letter:'A',text:'R1(config)# netconf-yang ssh ipv4 access-list name netconfacl'},{letter:'B',text:'R1(config-if)# ip access-group netconfacl out'},{letter:'C',text:'R1(config)# ip http secure-server\nR1(config)# ip http accounting commands 12 default'},{letter:'D',text:'R1(config-if)# ip access-group netconfacl in'}],correct:'A',feedback:{correct:'netconf-yang ssh ipv4 access-list name binds an ACL to the NETCONF management plane.',wrong:'netconf-yang ssh ipv4 access-list name is the correct IOS-XE command. Interface ACLs are data plane only.',correctAnswer:'A -- netconf-yang ssh ipv4 access-list name netconfacl'}},
+  {id:'b4',type:'single',originalNum:'Q48',tag:'SD-WAN',text:'Which technology provides an overlay fabric to connect remote locations utilizing commodity data paths and improves network performance, boosts security and reduces costs?',options:[{letter:'A',text:'InfiniBand'},{letter:'B',text:'VXLAN'},{letter:'C',text:'VTEP'},{letter:'D',text:'SD-WAN'}],correct:'D',feedback:{correct:'SD-WAN provides WAN overlay over commodity internet with path selection, encryption, and cost reduction.',wrong:'SD-WAN is for WAN overlay. VXLAN=DC overlay. VTEP=VXLAN component. InfiniBand=HPC.',correctAnswer:'D -- SD-WAN'}},
+  {id:'b5',type:'single',originalNum:'Q54',tag:'Automation',text:'Why would an engineer use YANG?',options:[{letter:'A',text:'to translate JSON into an equivalent XML syntax'},{letter:'B',text:'to access data using SNMP'},{letter:'C',text:'to model data for NETCONF'},{letter:'D',text:'to transport data between a controller and a network device'}],correct:'C',feedback:{correct:'YANG is a data modeling language defining structure and constraints of data managed by NETCONF.',wrong:'YANG models data structure for NETCONF. Not transport. Not translation.',correctAnswer:'C -- to model data for NETCONF'}},
+  {id:'b6',type:'single',originalNum:'Q65',tag:'Security',text:'An engineer must configure EXEC authorization that first checks a AAA server then local username. If both fail, user is denied. Which configuration?',options:[{letter:'A',text:'aaa authorization exec default local group radius none'},{letter:'B',text:'aaa authorization exec default group radius local none'},{letter:'C',text:'aaa authorization exec default local group tacacs+'},{letter:'D',text:'aaa authorization exec default group radius local'}],correct:'D',feedback:{correct:'"group radius local" = RADIUS first, then local. No "none" = implicit deny if all methods fail.',wrong:'Method order = checking order. Without "none", failure = deny. Option B adds "none" allowing access on failure.',correctAnswer:'D -- aaa authorization exec default group radius local'}},
+  {id:'b7',type:'single',originalNum:'Q66',tag:'SD-WAN',text:'Which action is the vSmart controller responsible for in an SD-WAN deployment?',options:[{letter:'A',text:'distribute security information for tunnel establishment between vEdge routers'},{letter:'B',text:'onboard vEdge nodes into the SD-WAN fabric'},{letter:'C',text:'gather telemetry data from vEdge routers'},{letter:'D',text:'manage, maintain, and gather configuration and status for nodes within the SD-WAN fabric'}],correct:'A',feedback:{correct:'vSmart (control plane) distributes OMP routes and IPsec keys for tunnel establishment.',wrong:'vSmart=security/routing(A). vBond=onboarding(B). vManage=telemetry+config(C,D).',correctAnswer:'A -- distribute security information for tunnel establishment'}},
+  {id:'b8',type:'single',originalNum:'Q68',tag:'SD-Access',text:'In a Cisco SD-Access solution, what is the role of the Identity Services Engine?',options:[{letter:'A',text:'It manages the LISP EID database.'},{letter:'B',text:'It is used to analyze endpoint to app flows and monitor fabric status.'},{letter:'C',text:'It is leveraged for dynamic endpoint to group mapping and policy definition.'},{letter:'D',text:'It provides GUI management and abstraction via apps that share context.'}],correct:'C',feedback:{correct:'ISE authenticates endpoints, assigns SGTs, and defines group-based access policies.',wrong:'ISE=identity+SGT+policy(C). DNA Center=fabric+GUI(D). Flow analysis=Stealthwatch.',correctAnswer:'C -- dynamic endpoint to group mapping and policy definition'}},
+  {id:'b9',type:'single',originalNum:'Q74',tag:'SD-WAN',text:'Which function is performed by vSmart in the Cisco SD-WAN architecture?',options:[{letter:'A',text:'redistribution between OMP and other routing protocols'},{letter:'B',text:'facilitation of NAT detection and traversal'},{letter:'C',text:'execution of localized policies'},{letter:'D',text:'aggregation and distribution of VPN routing information'}],correct:'D',feedback:{correct:'vSmart aggregates VPN routing from all vEdges via OMP and distributes it across the overlay.',wrong:'vSmart=aggregates+distributes VPN routing(D). NAT=vBond(B). Localized policies=vEdge(C). OMP-IGP redistribution=vEdge(A).',correctAnswer:'D -- aggregation and distribution of VPN routing information'}},
+  {id:'b10',type:'single',originalNum:'Q78',tag:'Routing',text:'When using BFD in a network design, which consideration must be made?',options:[{letter:'A',text:'BFD is used with first hop routing protocols to provide subsecond convergence.'},{letter:'B',text:'BFD is used with dynamic routing protocols to provide subsecond convergence.'},{letter:'C',text:'BFD is used with NSF and graceful to provide subsecond convergence.'},{letter:'D',text:'BFD is more CPU-intensive than using reduced hold timers with routing protocols.'}],correct:'B',feedback:{correct:'BFD works with dynamic routing protocols for sub-second failure detection in the forwarding plane.',wrong:'BFD pairs with routing protocols. Less CPU-intensive than reduced timers. Not FHRP. Not NSF.',correctAnswer:'B -- BFD is used with dynamic routing protocols'}},
+  {id:'b11',type:'multi',originalNum:'ACL-FTP',tag:'Security',text:'Which two commands are required on R1 to block FTP and allow all other traffic from Branch 2? (Choose two)',options:[{letter:'A',text:'Option A:\ninterface GigabitEthernet0/0\nip address 10.0.0.1 255.255.255.0\nip access-group 101 out'},{letter:'B',text:'Option B:\ninterface GigabitEthernet0/0\nip address 10.0.101.1 255.255.255.0\nip access-group 101 in'},{letter:'C',text:'Option C:\naccess-list 101 deny tcp 10.0.2.0 0.0.0.255 host 10.0.101.3 eq ftp-data\naccess-list 101 permit ip any any'},{letter:'D',text:'Option D:\naccess-list 101 deny tcp 10.0.2.0 0.0.0.255 host 10.0.101.3 eq ftp\naccess-list 101 deny tcp 10.0.2.0 0.0.0.255 host 10.0.101.3 eq ftp-data\naccess-list 101 permit ip any any'},{letter:'E',text:'Option E:\naccess-list 101 deny tcp 10.0.2.0 0.0.0.255 host 10.0.101.3 eq ftp\naccess-list 101 permit ip any any'}],correct:['A','D'],feedback:{correct:'Option A applies ACL outbound correctly. Option D blocks BOTH ftp(21) AND ftp-data(20).',wrong:'Need ftp(21) AND ftp-data(20). D blocks both. C only ftp-data. E only ftp control.',correctAnswer:'A and D'}},
+  {id:'b12',type:'matching',originalNum:'Q16',tag:'Virtualization',text:'Match the virtual components to their descriptions.',pairs:[{component:'VMX',description:'configuration file containing settings for a virtual machine such as guest OS'},{component:'vNIC',description:'component of a virtual machine responsible for sending packets to the hypervisor'},{component:'OVA',description:'zip file connecting a virtual machine configuration file and a virtual disk'},{component:'VMDK',description:'file containing a virtual machine disk drive'}],feedback:{correct:'VMX=config file, vNIC=virtual NIC, OVA=zip archive, VMDK=virtual disk.',wrong:'VMX=config | vNIC=virtual NIC | OVA=zip | VMDK=disk.',correctAnswer:'VMX=config | vNIC=NIC | OVA=zip | VMDK=disk'}},
+  {id:'b13',type:'multi',originalNum:'Q6',tag:'Security',text:'Which two characteristics apply to the endpoint security aspect of the Cisco Threat Defense architecture? (Choose two)',options:[{letter:'A',text:'blocking of fileless malware in real time'},{letter:'B',text:'outbound URL analysis and data transfer controls'},{letter:'C',text:'cloud-based analysis of threats'},{letter:'D',text:'user context analysis'},{letter:'E',text:'detect and block ransomware in email attachments'}],correct:['B','E'],feedback:{correct:'Endpoint security: outbound URL analysis/data transfer controls(B) + email ransomware detection(E).',wrong:'B=URL analysis(endpoint). E=email ransomware(endpoint). A=network/AMP. C=cloud. D=identity.',correctAnswer:'B and E'}},
+  {id:'b14',type:'single',originalNum:'JSON-1',tag:'Automation',text:'Which JSON syntax is valid?',options:[{letter:'A',text:'{"switch":{"name":"dist1","interfaces":["gig1","gig2","gig3"]}}'},{letter:'B',text:'{"switch":"name":"dist1","interfaces":["gig1","gig2","gig3"]}'},{letter:'C',text:'{/"switch/":{/"name/":"dist1",/"interfaces/":["gig1","gig2","gig3"]}}'},{letter:'D',text:"{'switch':('name':'dist1','interfaces':['gig1','gig2','gig3'])}"}],correct:'A',feedback:{correct:'A: correct double quotes, {} objects, [] arrays.',wrong:'JSON = double quotes, {} objects, [] arrays. No slashes. No single quotes.',correctAnswer:'A -- {"switch":{"name":"dist1","interfaces":["gig1","gig2","gig3"]}}'}},
+  {id:'b15',type:'single',originalNum:'JSON-2',tag:'Automation',text:'Which JSON syntax is derived from a data structure with a "Person" key containing a list of two people, each with First Name, Last Name, and a Hobbies array?',options:[{letter:'A',text:"Option A: {'Person': [{'First Name': 'Johnny', 'Last Name': 'Table', 'Hobbies': ['Running', 'Video games']}, {'First Name': 'Billy', 'Last Name': 'Smith', 'Hobbies': ['Napping', 'Reading']}]}"},{letter:'B',text:"Option B: {[{'First Name': 'Johnny', 'Last Name': 'Table', 'Hobbies': 'Running', 'Hobbies': 'Video games'}, ...]}"},{letter:'C',text:"Option C: {'Person': [{'First Name':'Johnny', 'Last Name': 'Table', 'Hobbies': 'Running', 'Video games'}, ...]}"},{letter:'D',text:"Option D: {[{'First Name': 'Johnny', 'Last Name': 'Table', 'Hobbies': ['Running', 'Video games']}, ...]}"}],correct:'A',feedback:{correct:'A: "Person" key at top level, Hobbies as proper array.',wrong:'D is missing "Person" wrapper. B duplicates Hobbies key. C lists Hobbies as flat properties.',correctAnswer:'A -- Person key wrapping objects with Hobbies arrays'}},
+  {id:'b16',type:'multi',originalNum:'Q76',tag:'Security',text:'Which two new security capabilities are introduced by using a next-generation firewall at the Internet edge? (Choose two)',options:[{letter:'A',text:'integrated intrusion prevention'},{letter:'B',text:'DVPN'},{letter:'C',text:'application-level inspection'},{letter:'D',text:'stateful packet inspection'},{letter:'E',text:'NAT'}],correct:['A','C'],feedback:{correct:'NGFWs add integrated IPS(A) and application-level inspection(C) beyond traditional firewalls.',wrong:'A=IPS(new in NGFW). C=App inspection(new in NGFW). D+E=traditional FW features. B=VPN tech.',correctAnswer:'A and C'}}
+];
+
+renderQuiz();
+renderCS();
+</script>
+</body>
+</html>
+</body>
+</html>
