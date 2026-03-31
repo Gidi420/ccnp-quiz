@@ -748,7 +748,7 @@ function parseAndAdd(){
   document.getElementById('pasteArea').value='';
   status.className='parse-st ok';
   status.textContent='Added '+results.length+' question(s)!'+(errors.length?' ('+errors.length+' skipped)':'');
-  renderQuiz();renderQList();
+  renderQuiz();renderQList();renderCS();
 }
 
 function renderQList(){
