@@ -428,10 +428,6 @@ function renderPractice(){
 function renderCurrentPractice(){
   var body=document.getElementById('practiceBody');body.innerHTML='';
   var q=activeOrder[currentQIdx];
-  var prog=document.createElement('div');
-  prog.className='single-progress';
-  prog.textContent='Question '+(currentQIdx+1)+' of '+activeOrder.length;
-  body.appendChild(prog);
   var card=document.createElement('div');
   card.className='question-card';card.id='card-'+q.id;
   card.innerHTML=buildQ(q,currentQIdx+1);
