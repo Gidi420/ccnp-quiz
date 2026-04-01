@@ -185,6 +185,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .next-btn:hover{opacity:.88;transform:translateY(-1px);}
 .next-wrap{text-align:center;padding:16px 0 8px;}
 .single-progress{text-align:center;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:16px;font-family:'JetBrains Mono',monospace;}
+.quiz-setup-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:40px 28px;text-align:center;box-shadow:var(--shadow-md);max-width:420px;margin:48px auto;}
+.quiz-setup-card h2{font-size:20px;font-weight:800;margin-bottom:8px;color:var(--text);}
+.quiz-setup-card p{font-size:14px;color:var(--muted);margin-bottom:28px;font-weight:600;}
+.setup-options{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.setup-opt{background:var(--accent-light);border:1.5px solid #c7d7ff;color:var(--accent);border-radius:10px;padding:14px 18px;font-size:17px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;min-width:64px;}
+.setup-opt:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 @keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @media(max-width:600px){
@@ -209,30 +215,38 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <span class="hint-label">Hints</span>
       <div class="toggle-track" id="hintTrack"><div class="toggle-thumb"></div></div>
     </div>
-    <div class="progress-wrap">
-      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
-      <div class="progress-label" id="progressLabel">0 / 0</div>
-    </div>
   </div>
 </div>
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('quiz',this)">&#x1F4DD; Quiz</button>
+  <button class="tab-btn active" onclick="switchTab('practice',this)">&#x1F4DA; Practice</button>
+  <button class="tab-btn" onclick="switchTab('quiz',this)">&#x1F3AF; Quiz Mode</button>
   <button class="tab-btn" onclick="switchTab('cheat',this)">&#x26A1; Cheat Sheet</button>
-  <button class="tab-btn" onclick="switchTab('upload',this)">&#x2795; Add Q</button>
-  <button class="tab-btn" onclick="switchTab('install',this)">&#x1F4F1; Install</button>
 </div>
 <div class="quiz-container">
-  <div class="tab-content active" id="tab-quiz">
+  <div class="tab-content active" id="tab-practice">
+    <div id="practiceBody"></div>
+  </div>
+  <div class="tab-content" id="tab-quiz">
     <div class="score-banner" id="scoreBanner">
       <div class="score-num" id="scoreNum">--</div>
       <div class="score-label">Questions Correct</div>
       <div class="score-sub" id="scoreSub"></div>
-      <div class="score-actions"><button class="restart-btn" onclick="restartQuiz()">&#x21A9; New Shuffle &amp; Restart</button></div>
+      <div class="score-actions"><button class="restart-btn" onclick="restartQuizMode()">&#x21A9; Restart Quiz</button></div>
+    </div>
+    <div id="quizSetup">
+      <div class="quiz-setup-card">
+        <h2>&#x1F3AF; Quiz Mode</h2>
+        <p>How many questions?</p>
+        <div class="setup-options">
+          <button class="setup-opt" onclick="startQuiz(5)">5</button>
+          <button class="setup-opt" onclick="startQuiz(10)">10</button>
+          <button class="setup-opt" onclick="startQuiz(15)">15</button>
+          <button class="setup-opt" onclick="startQuiz(20)">20</button>
+          <button class="setup-opt" onclick="startQuiz(0)">All</button>
+        </div>
+      </div>
     </div>
     <div id="quizBody"></div>
-    <div class="final-wrap" id="finalWrap" style="display:none;">
-      <button class="final-btn" onclick="finalSubmit()">Submit All &amp; See Score &#x2192;</button>
-    </div>
   </div>
   <div class="tab-content" id="tab-cheat">
     <div class="cs-hero">
@@ -241,70 +255,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
     <div class="cs-search-wrap"><input class="cs-search" id="csSearch" placeholder="Search keywords, associations..." oninput="filterCS(this.value)"></div>
     <div id="csBody"></div>
-  </div>
-  <div class="tab-content" id="tab-upload">
-    <div class="upload-sec">
-      <h2>&#x2795; Add New Questions</h2>
-      <p>Paste questions below. Separate with <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:10px">---</code> on its own line. Add a <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;font-size:10px">TRICK:</code> line for a memory trick.</p>
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Multiple Choice</div>
-      <div class="tmpl-box">QUESTION: Which protocol does SD-WAN use for control plane?
-TAG: SD-WAN
-A. OSPF
-B. OMP
-C. BGP
-D. EIGRP
-CORRECT: B
-EXPLANATION_CORRECT: OMP is Cisco's SD-WAN control plane protocol.
-EXPLANATION_WRONG: Correct is B -- OMP (Overlay Management Protocol).
-CORRECT_ANSWER_LABEL: B -- OMP
-TRICK: OMP = SD-WAN's own routing language (like BGP but for SD-WAN)
----</div>
-      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Drag &amp; Drop</div>
-      <div class="tmpl-box">QUESTION: Match the QoS components to their behaviour.
-TAG: QoS
-TYPE: dragdrop
-ITEM1: drops excessive traffic immediately
-ITEM2: buffers excessive traffic
-GROUP1_LABEL: Traffic Policing
-GROUP1_ITEMS: 1
-GROUP2_LABEL: Traffic Shaping
-GROUP2_ITEMS: 2
-EXPLANATION_CORRECT: Policing drops. Shaping buffers.
-EXPLANATION_WRONG: Policing=drops, Shaping=buffers.
-CORRECT_ANSWER_LABEL: Policing=drops, Shaping=buffers
-TRICK: Police punish (drop). Shapers mold gently (buffer).
----</div>
-      <textarea class="paste-area" id="pasteArea" placeholder="Paste questions here..."></textarea>
-      <button class="parse-btn" onclick="parseAndAdd()">Add Questions</button>
-      <div class="parse-st" id="parseStatus"></div>
-    </div>
-    <div class="upload-sec">
-      <h2>&#x1F4CB; Question Bank (<span id="qCount">0</span> total)</h2>
-      <p>Delete custom questions you no longer need.</p>
-      <div id="qList"></div>
-      <button class="parse-btn" style="background:#dc2626;margin-top:6px;" onclick="clearAll()">&#x1F5D1; Clear Custom</button>
-    </div>
-  </div>
-  <div class="tab-content" id="tab-install">
-    <div class="pwa-sec">
-      <h2>&#x1F4F1; Install on Your Phone</h2>
-      <p>Add to home screen to open like a native app.</p>
-      <p><strong>iPhone (Safari):</strong></p>
-      <ul class="pwa-steps">
-        <li data-n="1.">Open this file in Safari</li>
-        <li data-n="2.">Tap the Share button (box with arrow)</li>
-        <li data-n="3.">Tap Add to Home Screen</li>
-        <li data-n="4.">Tap Add</li>
-      </ul>
-      <p><strong>Android (Chrome):</strong></p>
-      <ul class="pwa-steps">
-        <li data-n="1.">Open in Chrome</li>
-        <li data-n="2.">Tap the 3-dot menu</li>
-        <li data-n="3.">Tap Add to Home screen</li>
-        <li data-n="4.">Tap Add</li>
-      </ul>
-      <p style="font-size:11px;color:var(--muted);margin-top:11px;">Save the HTML file via AirDrop or cloud storage, open in Safari/Chrome, then add to home screen. Custom questions persist in the browser.</p>
-    </div>
   </div>
 </div>
 <script>
@@ -386,6 +336,7 @@ var TRICKS={
 var QUESTIONS=[],activeOrder=[],userAnswers={},submitted={},ddState={},correctness={};
 var hintsEnabled=false;
 var currentQIdx=0;
+var currentMode='practice';
 
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}return b;}
 function loadCustom(){try{return JSON.parse(localStorage.getItem('ccnp_custom')||'[]');}catch(e){return[];}}
@@ -395,7 +346,7 @@ function buildBank(){QUESTIONS=BUILTIN.concat(loadCustom());}
 function toggleHints(){
   hintsEnabled=!hintsEnabled;
   document.getElementById('hintTrack').classList.toggle('on',hintsEnabled);
-  renderQuiz();
+  if(currentMode==='practice') renderPractice();
 }
 
 function applyHints(text){
@@ -419,7 +370,16 @@ function switchTab(name,btn){
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='upload') renderQList();
+  if(name==='practice'){
+    document.getElementById('quizBody').innerHTML='';
+    document.getElementById('quizSetup').style.display='block';
+    document.getElementById('scoreBanner').classList.remove('visible');
+    renderPractice();
+  }
+  if(name==='quiz'){
+    document.getElementById('practiceBody').innerHTML='';
+    renderQuiz();
+  }
   if(name==='cheat') renderCS();
 }
 
@@ -458,15 +418,35 @@ function filterCS(q){
   });
 }
 
-function renderQuiz(){
+function renderPractice(){
+  currentMode='practice';
   buildBank();
-  activeOrder=shuffle(QUESTIONS);
-  userAnswers={};submitted={};ddState={};correctness={};currentQIdx=0;
-  document.getElementById('quizBody').innerHTML='';
+  var order=shuffle(QUESTIONS);
+  userAnswers={};submitted={};ddState={};correctness={};
+  var body=document.getElementById('practiceBody');body.innerHTML='';
+  order.forEach(function(q,i){
+    var card=document.createElement('div');
+    card.className='question-card';card.id='card-'+q.id;
+    card.innerHTML=buildQ(q,i+1);
+    body.appendChild(card);
+  });
+  attachMC();
+}
+function renderQuiz(){
   document.getElementById('scoreBanner').classList.remove('visible');
-  document.getElementById('finalWrap').style.display='none';
+  document.getElementById('quizBody').innerHTML='';
+  document.getElementById('quizSetup').style.display='block';
+}
+function startQuiz(count){
+  currentMode='quiz';
+  buildBank();
+  var pool=shuffle(QUESTIONS);
+  activeOrder=count>0?pool.slice(0,Math.min(count,pool.length)):pool;
+  userAnswers={};submitted={};ddState={};correctness={};currentQIdx=0;
+  document.getElementById('quizSetup').style.display='none';
   renderCurrentQ();
 }
+function restartQuizMode(){renderQuiz();window.scrollTo({top:0,behavior:'smooth'});}
 function renderCurrentQ(){
   var body=document.getElementById('quizBody');body.innerHTML='';
   if(currentQIdx>=activeOrder.length){showScoreSingle();return;}
@@ -499,6 +479,7 @@ function showScoreSingle(){
 }
 function postSubmit(qid,ok){
   correctness[qid]=ok;
+  if(currentMode!=='quiz') return;
   var nw=document.getElementById('nextWrap');if(!nw)return;
   var isLast=currentQIdx>=activeOrder.length-1;
   nw.innerHTML=isLast
@@ -730,12 +711,7 @@ function finalSubmit(){
   document.getElementById('finalWrap').style.display='none';
   document.getElementById('scoreBanner').scrollIntoView({behavior:'smooth'});
 }
-function restartQuiz(){renderQuiz();window.scrollTo({top:0,behavior:'smooth'});}
-function updateProgress(){
-  var done=Object.keys(submitted).length,total=activeOrder.length;
-  document.getElementById('progressBar').style.width=(total?done/total*100:0)+'%';
-  document.getElementById('progressLabel').textContent=done+' / '+total;
-}
+function updateProgress(){}
 function attachMC(){
   document.querySelectorAll('.option').forEach(function(el){
     el.addEventListener('click',function(){
@@ -843,7 +819,7 @@ var BUILTIN=[
   {id:'b24',type:'single',originalNum:'Q-HSRP',tag:'Switching',text:'Which configuration causes traffic from PC-1 to the internet to use the link between CoreSW-1 and CoreSW-2 when both switches are up? CoreSW-1 is the STP root for VLAN 10 (priority 24576). CoreSW-2 has Bridge ID priority 32778. Both run HSRP with standby 10 ip 192.168.1.254. PC-1 is at 192.168.1.1.',options:[{letter:'A',text:'CoreSW-2(config)# interface vlan 10\nCoreSW-2(config-if)# standby 10 priority 100'},{letter:'B',text:'CoreSW-1(config)# interface vlan 10\nCoreSW-1(config-if)# standby 10 priority 100'},{letter:'C',text:'CoreSW-1(config)# interface vlan 10\nCoreSW-1(config-if)# standby 10 priority 90'},{letter:'D',text:'CoreSW-2(config)# interface vlan 10\nCoreSW-2(config-if)# standby 10 priority 110'}],correct:'D',feedback:{correct:'To route PC-1 traffic through the CoreSW-1 to CoreSW-2 link, CoreSW-2 must be the HSRP active router. HSRP active = highest priority (default 100). Setting CoreSW-2 priority to 110 makes it the HSRP active gateway, so PC-1 sends traffic to CoreSW-2, which then uses the link to CoreSW-1 to reach the internet.',wrong:'The correct answer is D. To force traffic through the CoreSW-1 to CoreSW-2 link, CoreSW-2 must be the HSRP active router, which requires the highest priority. Setting CoreSW-2 to 110 (above the default 100) achieves this. Options A and B set priority to 100 (same as default, no change). Option C lowers CoreSW-1 priority but CoreSW-2 still needs to be explicitly set higher.',correctAnswer:'D -- CoreSW-2 standby 10 priority 110 (makes CoreSW-2 HSRP active)',trick:'HSRP active = highest priority wins. To send PC-1 traffic through the CoreSW-1↔CoreSW-2 link, make CoreSW-2 the HSRP active router by setting its priority above 100.'}}
 ];
 
-renderQuiz();
+renderPractice();
 renderCS();
 
 document.addEventListener('click',function(e){
