@@ -452,54 +452,49 @@ function startQuiz(count){
   buildBank();
   var pool=shuffle(QUESTIONS);
   activeOrder=count>0?pool.slice(0,Math.min(count,pool.length)):pool;
-  userAnswers={};submitted={};ddState={};correctness={};currentQIdx=0;
+  userAnswers={};submitted={};ddState={};correctness={};
   document.getElementById('quizSetup').style.display='none';
-  renderCurrentQ();
-}
-function restartQuizMode(){renderQuiz();window.scrollTo({top:0,behavior:'smooth'});}
-function renderCurrentQ(){
+  document.getElementById('scoreBanner').classList.remove('visible');
   var body=document.getElementById('quizBody');body.innerHTML='';
-  if(currentQIdx>=activeOrder.length){showScoreSingle();return;}
-  var q=activeOrder[currentQIdx];
-  var prog=document.createElement('div');
-  prog.className='single-progress';
-  prog.textContent='Question '+(currentQIdx+1)+' of '+activeOrder.length;
-  body.appendChild(prog);
-  var card=document.createElement('div');
-  card.className='question-card';card.id='card-'+q.id;
-  card.innerHTML=buildQ(q,currentQIdx+1);
-  body.appendChild(card);
-  var nw=document.createElement('div');
-  nw.className='next-wrap';nw.id='nextWrap';nw.style.display='none';
-  body.appendChild(nw);
-  updateProgress();
+  activeOrder.forEach(function(q,i){
+    var card=document.createElement('div');
+    card.className='question-card';card.id='card-'+q.id;
+    card.innerHTML=buildQ(q,i+1);
+    body.appendChild(card);
+  });
+  body.querySelectorAll('.submit-btn').forEach(function(b){b.style.display='none';});
+  var sw=document.createElement('div');
+  sw.className='final-wrap';sw.id='submitAllWrap';
+  sw.innerHTML='<button class="final-btn" onclick="submitAll()">Submit All &amp; See Score &#x2192;</button>';
+  body.appendChild(sw);
   attachMC();
 }
-function nextQuestion(){currentQIdx++;renderCurrentQ();window.scrollTo({top:0,behavior:'smooth'});}
-function showScoreSingle(){
+function restartQuizMode(){renderQuiz();window.scrollTo({top:0,behavior:'smooth'});}
+function submitAll(){
+  activeOrder.forEach(function(q){
+    if(!submitted[q.id]){
+      if(q.type==='single') submitSingle(q.id);
+      else if(q.type==='multi') submitMulti(q.id);
+      else if(q.type==='matching') submitMatch(q.id);
+      else if(q.type==='dragdrop') submitDD(q.id);
+    }
+  });
   var total=activeOrder.length;
   var correct=Object.keys(correctness).filter(function(k){return correctness[k];}).length;
   var pct=Math.round(correct/total*100);
-  document.getElementById('quizBody').innerHTML='';
   document.getElementById('scoreNum').textContent=correct+' / '+total;
   document.getElementById('scoreNum').style.color=pct>=70?'var(--green)':'var(--red)';
   document.getElementById('scoreSub').textContent=pct+'% -- '+(pct>=70?'Pass! Great work.':'Keep going!');
   document.getElementById('scoreBanner').classList.add('visible');
+  document.getElementById('submitAllWrap').style.display='none';
   document.getElementById('scoreBanner').scrollIntoView({behavior:'smooth'});
 }
 function postSubmit(qid,ok){
   correctness[qid]=ok;
+  if(currentMode!=='practice') return;
   var nw=document.getElementById('nextWrap');if(!nw)return;
-  if(currentMode==='practice'){
-    nw.innerHTML='<button class="next-btn" onclick="nextPractice()">Next Question &#x2192;</button>';
-    nw.style.display='block';
-  } else if(currentMode==='quiz'){
-    var isLast=currentQIdx>=activeOrder.length-1;
-    nw.innerHTML=isLast
-      ?'<button class="final-btn" onclick="showScoreSingle()">See Results &#x2192;</button>'
-      :'<button class="next-btn" onclick="nextQuestion()">Next Question &#x2192;</button>';
-    nw.style.display='block';
-  }
+  nw.innerHTML='<button class="next-btn" onclick="nextPractice()">Next Question &#x2192;</button>';
+  nw.style.display='block';
 }
 
 function buildQ(q,num){
