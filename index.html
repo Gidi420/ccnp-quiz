@@ -181,6 +181,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .pwa-steps{list-style:none;padding:0;margin-bottom:11px;}
 .pwa-steps li{font-size:12px;color:var(--text2);padding:4px 0 4px 21px;position:relative;line-height:1.5;}
 .pwa-steps li::before{content:attr(data-n);position:absolute;left:0;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.next-btn{background:linear-gradient(135deg,var(--green),#047857);color:#fff;border:none;border-radius:9px;padding:11px 28px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:opacity .2s,transform .1s;}
+.next-btn:hover{opacity:.88;transform:translateY(-1px);}
+.next-wrap{text-align:center;padding:16px 0 8px;}
+.single-progress{text-align:center;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:16px;font-family:'JetBrains Mono',monospace;}
 @keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @media(max-width:600px){
@@ -370,11 +374,14 @@ var TRICKS={
   'b15':'"Person" key must wrap the array. Hobbies must be an array []. No Person key = wrong.',
   'b16':'NGFW = old stateful FW + IPS + App inspection. The two NEW things = IPS + App inspection.',
   'b17':'vBond = BOND -- it bonds/connects new devices to the fabric. Think of it as the bouncer that lets vEdge routers in.',
-  'b18':'DTLS = Directors (controllers) talking to vEdge = control plane. IPsec = Interstate highway between vEdges = data plane. D for Directors, I for Interstate.'
+  'b18':'DTLS = Directors (controllers) talking to vEdge = control plane. IPsec = Interstate highway between vEdges = data plane. D for Directors, I for Interstate.',
+  'b19':'MACsec = 802.1AE. MKA = MACsec Key Agreement. Keys come from the 802.1X MSK (Master Session Key). Remember: 802.1X authenticates → MSK born → MKA uses MSK to negotiate encryption.',
+  'b20':'vlan_list_dict = {} → curly braces = dictionary! Split by "=>" into k,v = key-value pairs. The variable name even says "dict". {} = dict, [] = list, () = tuple.'
 };
 
-var QUESTIONS=[],activeOrder=[],userAnswers={},submitted={},ddState={};
+var QUESTIONS=[],activeOrder=[],userAnswers={},submitted={},ddState={},correctness={};
 var hintsEnabled=false;
+var currentQIdx=0;
 
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}return b;}
 function loadCustom(){try{return JSON.parse(localStorage.getItem('ccnp_custom')||'[]');}catch(e){return[];}}
@@ -450,18 +457,50 @@ function filterCS(q){
 function renderQuiz(){
   buildBank();
   activeOrder=shuffle(QUESTIONS);
-  userAnswers={};submitted={};ddState={};
-  var body=document.getElementById('quizBody');body.innerHTML='';
-  activeOrder.forEach(function(q,idx){
-    var card=document.createElement('div');
-    card.className='question-card';card.id='card-'+q.id;
-    card.innerHTML=buildQ(q,idx+1);
-    body.appendChild(card);
-  });
-  document.getElementById('finalWrap').style.display='block';
+  userAnswers={};submitted={};ddState={};correctness={};currentQIdx=0;
+  document.getElementById('quizBody').innerHTML='';
   document.getElementById('scoreBanner').classList.remove('visible');
+  document.getElementById('finalWrap').style.display='none';
+  renderCurrentQ();
+}
+function renderCurrentQ(){
+  var body=document.getElementById('quizBody');body.innerHTML='';
+  if(currentQIdx>=activeOrder.length){showScoreSingle();return;}
+  var q=activeOrder[currentQIdx];
+  var prog=document.createElement('div');
+  prog.className='single-progress';
+  prog.textContent='Question '+(currentQIdx+1)+' of '+activeOrder.length;
+  body.appendChild(prog);
+  var card=document.createElement('div');
+  card.className='question-card';card.id='card-'+q.id;
+  card.innerHTML=buildQ(q,currentQIdx+1);
+  body.appendChild(card);
+  var nw=document.createElement('div');
+  nw.className='next-wrap';nw.id='nextWrap';nw.style.display='none';
+  body.appendChild(nw);
   updateProgress();
   attachMC();
+}
+function nextQuestion(){currentQIdx++;renderCurrentQ();window.scrollTo({top:0,behavior:'smooth'});}
+function showScoreSingle(){
+  var total=activeOrder.length;
+  var correct=Object.keys(correctness).filter(function(k){return correctness[k];}).length;
+  var pct=Math.round(correct/total*100);
+  document.getElementById('quizBody').innerHTML='';
+  document.getElementById('scoreNum').textContent=correct+' / '+total;
+  document.getElementById('scoreNum').style.color=pct>=70?'var(--green)':'var(--red)';
+  document.getElementById('scoreSub').textContent=pct+'% -- '+(pct>=70?'Pass! Great work.':'Keep going!');
+  document.getElementById('scoreBanner').classList.add('visible');
+  document.getElementById('scoreBanner').scrollIntoView({behavior:'smooth'});
+}
+function postSubmit(qid,ok){
+  correctness[qid]=ok;
+  var nw=document.getElementById('nextWrap');if(!nw)return;
+  var isLast=currentQIdx>=activeOrder.length-1;
+  nw.innerHTML=isLast
+    ?'<button class="final-btn" onclick="showScoreSingle()">See Results &#x2192;</button>'
+    :'<button class="next-btn" onclick="nextQuestion()">Next Question &#x2192;</button>';
+  nw.style.display='block';
 }
 
 function buildQ(q,num){
@@ -596,7 +635,7 @@ function submitSingle(qid){
   document.getElementById('sb-'+qid).style.display='none';
   revealTrickBtn(qid);
   document.getElementById('card-'+qid).classList.add(ok?'answered-correct':'answered-wrong');
-  updateProgress();
+  updateProgress();postSubmit(qid,ok);
 }
 function submitMulti(qid){
   if(submitted[qid]) return;submitted[qid]=true;
@@ -612,7 +651,7 @@ function submitMulti(qid){
   document.getElementById('sb-'+qid).style.display='none';
   revealTrickBtn(qid);
   document.getElementById('card-'+qid).classList.add(ok?'answered-correct':'answered-wrong');
-  updateProgress();
+  updateProgress();postSubmit(qid,ok);
 }
 function submitMatch(qid){
   if(submitted[qid]) return;submitted[qid]=true;
@@ -630,7 +669,7 @@ function submitMatch(qid){
   document.getElementById('sb-'+qid).style.display='none';
   revealTrickBtn(qid);
   document.getElementById('card-'+qid).classList.add(ok?'answered-correct':'answered-wrong');
-  updateProgress();
+  updateProgress();postSubmit(qid,ok);
 }
 function submitDD(qid){
   if(submitted[qid]) return;submitted[qid]=true;
@@ -655,7 +694,7 @@ function submitDD(qid){
   document.getElementById('sb-'+qid).style.display='none';
   revealTrickBtn(qid);
   document.getElementById('card-'+qid).classList.add(allOk?'answered-correct':'answered-wrong');
-  updateProgress();
+  updateProgress();postSubmit(qid,allOk);
 }
 
 function showFB(qid,ok,feedback){
@@ -791,7 +830,9 @@ var BUILTIN=[
   {id:'b15',type:'single',originalNum:'JSON-2',tag:'Automation',text:'Which JSON syntax is derived from a data structure with a "Person" key containing a list of two people, each with First Name, Last Name, and a Hobbies array?',options:[{letter:'A',text:"Option A: {'Person': [{'First Name': 'Johnny', 'Last Name': 'Table', 'Hobbies': ['Running', 'Video games']}, {'First Name': 'Billy', 'Last Name': 'Smith', 'Hobbies': ['Napping', 'Reading']}]}"},{letter:'B',text:"Option B: {[{'First Name': 'Johnny', 'Last Name': 'Table', 'Hobbies': 'Running', 'Hobbies': 'Video games'}, ...]}"},{letter:'C',text:"Option C: {'Person': [{'First Name':'Johnny', 'Last Name': 'Table', 'Hobbies': 'Running', 'Video games'}, ...]}"},{letter:'D',text:"Option D: {[{'First Name': 'Johnny', 'Last Name': 'Table', 'Hobbies': ['Running', 'Video games']}, ...]}"}],correct:'A',feedback:{correct:'A: "Person" key at top level, Hobbies as proper array.',wrong:'D is missing "Person" wrapper. B duplicates Hobbies key. C lists Hobbies as flat properties.',correctAnswer:'A -- Person key wrapping objects with Hobbies arrays'}},
   {id:'b16',type:'multi',originalNum:'Q76',tag:'Security',text:'Which two new security capabilities are introduced by using a next-generation firewall at the Internet edge? (Choose two)',options:[{letter:'A',text:'integrated intrusion prevention'},{letter:'B',text:'DVPN'},{letter:'C',text:'application-level inspection'},{letter:'D',text:'stateful packet inspection'},{letter:'E',text:'NAT'}],correct:['A','C'],feedback:{correct:'NGFWs add integrated IPS(A) and application-level inspection(C) beyond traditional firewalls.',wrong:'A=IPS(new in NGFW). C=App inspection(new in NGFW). D+E=traditional FW features. B=VPN tech.',correctAnswer:'A and C'}},
   {id:'b17',type:'single',originalNum:'Q-vBond',tag:'SD-WAN',text:'What is the function of vBond in a Cisco SD-WAN deployment?',options:[{letter:'A',text:'pushing of configuration toward SD-WAN routers'},{letter:'B',text:'initiating connections with SD-WAN routers automatically'},{letter:'C',text:'onboarding of SDWAN routers into the SD-WAN overlay'},{letter:'D',text:'gathering telemetry data from SD-WAN routers'}],correct:'C',feedback:{correct:'vBond is the orchestration plane controller. It authenticates and onboards vEdge routers into the SD-WAN overlay, and facilitates NAT traversal so devices can find each other across the internet.',wrong:'vBond handles onboarding/orchestration (C). Pushing config = vManage (A). Gathering telemetry = vManage (D). vBond initiates the onboarding process but it is the vEdge that initiates the connection to vBond, not the other way around (B).',correctAnswer:'C -- onboarding of SDWAN routers into the SD-WAN overlay',trick:'vBond = BOND -- it bonds/connects new devices to the fabric. Think of it as the bouncer that lets vEdge routers in.'}},
-  {id:'b18',type:'single',originalNum:'Q-DTLS',tag:'SD-WAN',text:'Which protocol is used to encrypt control plane traffic between SD-WAN controllers and SD-WAN endpoints?',options:[{letter:'A',text:'DTLS'},{letter:'B',text:'IPsec'},{letter:'C',text:'PGP'},{letter:'D',text:'HTTPS'}],correct:'A',feedback:{correct:'DTLS (Datagram Transport Layer Security) is used to encrypt control plane traffic between SD-WAN controllers (vSmart, vBond, vManage) and vEdge routers. IPsec is used for data plane encryption between vEdge routers.',wrong:'The correct answer is A. DTLS encrypts the control plane (OMP sessions between controllers and vEdge). IPsec encrypts the data plane tunnels between vEdge routers. PGP and HTTPS are not used in SD-WAN control plane encryption.',correctAnswer:'A -- DTLS (Datagram Transport Layer Security)',trick:'DTLS = Directors (controllers) talking to vEdge = control plane. IPsec = Interstate highway between vEdges = data plane. D for Directors, I for Interstate.'}}
+  {id:'b18',type:'single',originalNum:'Q-DTLS',tag:'SD-WAN',text:'Which protocol is used to encrypt control plane traffic between SD-WAN controllers and SD-WAN endpoints?',options:[{letter:'A',text:'DTLS'},{letter:'B',text:'IPsec'},{letter:'C',text:'PGP'},{letter:'D',text:'HTTPS'}],correct:'A',feedback:{correct:'DTLS (Datagram Transport Layer Security) is used to encrypt control plane traffic between SD-WAN controllers (vSmart, vBond, vManage) and vEdge routers. IPsec is used for data plane encryption between vEdge routers.',wrong:'The correct answer is A. DTLS encrypts the control plane (OMP sessions between controllers and vEdge). IPsec encrypts the data plane tunnels between vEdge routers. PGP and HTTPS are not used in SD-WAN control plane encryption.',correctAnswer:'A -- DTLS (Datagram Transport Layer Security)',trick:'DTLS = Directors (controllers) talking to vEdge = control plane. IPsec = Interstate highway between vEdges = data plane. D for Directors, I for Interstate.'}},
+  {id:'b19',type:'single',originalNum:'Q-MACsec',tag:'Security',text:'What is a characteristic of MACsec?',options:[{letter:'A',text:'802.1AE is built between the host and switch using the MKA protocol, which negotiates encryption keys based on the master session key from a successful 802.1X session'},{letter:'B',text:'802.1AE is built between the host and switch using the MKA protocol using keys generated via the Diffie-Hellman algorithm (anonymous encryption mode)'},{letter:'C',text:'802.1AE is negotiated using Cisco AnyConnect NAM and the SAP protocol'},{letter:'D',text:'802.1AE provides encryption and authentication services'}],correct:'A',feedback:{correct:'MACsec (802.1AE) uses the MKA (MACsec Key Agreement) protocol to negotiate encryption keys. The keys are derived from the master session key (MSK) established during a successful 802.1X authentication session.',wrong:'The correct answer is A. MACsec uses MKA with keys from 802.1X authentication (MSK), not Diffie-Hellman. Diffie-Hellman would be anonymous mode which is not standard MACsec. AnyConnect NAM can initiate 802.1X but SAP is not the negotiation protocol. MACsec does provide encryption and authentication but that describes what it does, not how it works.',correctAnswer:'A -- MKA protocol with keys from successful 802.1X session',trick:'MACsec = 802.1AE. MKA = MACsec Key Agreement. Keys come from the 802.1X MSK (Master Session Key). Remember: 802.1X authenticates → MSK born → MKA uses MSK to negotiate encryption.'}},
+  {id:'b20',type:'single',originalNum:'Q-Python1',tag:'Automation',text:'A network engineer must use a Python script to convert data received from a network device. Which type of data is printed to the console when the script runs? The script defines a vlan() function that splits lines by newline, skips empty lines, splits each line by \'=>\' into key-value pairs, stores them in a dictionary called vlan_list_dict, and returns it. The main() function calls vlan() and prints the result.',options:[{letter:'A',text:'a tuple list'},{letter:'B',text:'list of strings'},{letter:'C',text:'list of lists'},{letter:'D',text:'dictionary with a key-value pair'}],correct:'D',feedback:{correct:'The vlan() function creates vlan_list_dict = {} which is a dictionary, stores key-value pairs in it using vlan_list_dict[k] = v, and returns it. print_vlan() then prints this dictionary to the console.',wrong:'The correct answer is D. The code explicitly creates a dictionary {} and populates it with k,v pairs split by "=>". It is not a list, tuple, or list of lists. The variable name vlan_list_dict and the k=key v=value pattern are the giveaways.',correctAnswer:'D -- dictionary with a key-value pair',trick:'vlan_list_dict = {} → curly braces = dictionary! Split by "=>" into k,v = key-value pairs. The variable name even says "dict". {} = dict, [] = list, () = tuple.'}}
 ];
 
 renderQuiz();
