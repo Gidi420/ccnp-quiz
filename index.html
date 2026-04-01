@@ -421,17 +421,27 @@ function filterCS(q){
 function renderPractice(){
   currentMode='practice';
   buildBank();
-  var order=shuffle(QUESTIONS);
-  userAnswers={};submitted={};ddState={};correctness={};
+  activeOrder=shuffle(QUESTIONS);
+  userAnswers={};submitted={};ddState={};correctness={};currentQIdx=0;
+  renderCurrentPractice();
+}
+function renderCurrentPractice(){
   var body=document.getElementById('practiceBody');body.innerHTML='';
-  order.forEach(function(q,i){
-    var card=document.createElement('div');
-    card.className='question-card';card.id='card-'+q.id;
-    card.innerHTML=buildQ(q,i+1);
-    body.appendChild(card);
-  });
+  var q=activeOrder[currentQIdx];
+  var prog=document.createElement('div');
+  prog.className='single-progress';
+  prog.textContent='Question '+(currentQIdx+1)+' of '+activeOrder.length;
+  body.appendChild(prog);
+  var card=document.createElement('div');
+  card.className='question-card';card.id='card-'+q.id;
+  card.innerHTML=buildQ(q,currentQIdx+1);
+  body.appendChild(card);
+  var nw=document.createElement('div');
+  nw.className='next-wrap';nw.id='nextWrap';nw.style.display='none';
+  body.appendChild(nw);
   attachMC();
 }
+function nextPractice(){currentQIdx=(currentQIdx+1)%activeOrder.length;renderCurrentPractice();window.scrollTo({top:0,behavior:'smooth'});}
 function renderQuiz(){
   document.getElementById('scoreBanner').classList.remove('visible');
   document.getElementById('quizBody').innerHTML='';
@@ -479,13 +489,17 @@ function showScoreSingle(){
 }
 function postSubmit(qid,ok){
   correctness[qid]=ok;
-  if(currentMode!=='quiz') return;
   var nw=document.getElementById('nextWrap');if(!nw)return;
-  var isLast=currentQIdx>=activeOrder.length-1;
-  nw.innerHTML=isLast
-    ?'<button class="final-btn" onclick="showScoreSingle()">See Results &#x2192;</button>'
-    :'<button class="next-btn" onclick="nextQuestion()">Next Question &#x2192;</button>';
-  nw.style.display='block';
+  if(currentMode==='practice'){
+    nw.innerHTML='<button class="next-btn" onclick="nextPractice()">Next Question &#x2192;</button>';
+    nw.style.display='block';
+  } else if(currentMode==='quiz'){
+    var isLast=currentQIdx>=activeOrder.length-1;
+    nw.innerHTML=isLast
+      ?'<button class="final-btn" onclick="showScoreSingle()">See Results &#x2192;</button>'
+      :'<button class="next-btn" onclick="nextQuestion()">Next Question &#x2192;</button>';
+    nw.style.display='block';
+  }
 }
 
 function buildQ(q,num){
