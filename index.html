@@ -626,8 +626,8 @@ function submitSingle(qid){
   var ans=userAnswers[qid],ok=ans===q.correct;
   document.querySelectorAll('.option[data-qid="'+qid+'"]').forEach(function(o){
     o.classList.add('disabled');
-    if(o.dataset.letter===q.correct){o.classList.add('correct');o.querySelector('.option-icon').textContent='checkmark';}
-    else if(o.dataset.letter===ans&&!ok){o.classList.add('wrong');o.querySelector('.option-icon').textContent='x';}
+    if(o.dataset.letter===q.correct){o.classList.add('correct');o.querySelector('.option-icon').textContent='✓';}
+    else if(o.dataset.letter===ans&&!ok){o.classList.add('wrong');o.querySelector('.option-icon').textContent='✕';}
   });
   showFB(qid,ok,q.feedback);
   document.getElementById('sb-'+qid).style.display='none';
@@ -642,8 +642,8 @@ function submitMulti(qid){
   var ok=q.correct.length===sel.length&&q.correct.every(function(c){return sel.indexOf(c)!==-1;});
   document.querySelectorAll('.option[data-qid="'+qid+'"]').forEach(function(o){
     o.classList.add('disabled');
-    if(q.correct.indexOf(o.dataset.letter)!==-1){o.classList.add('correct');o.querySelector('.option-icon').textContent='checkmark';}
-    else if(sel.indexOf(o.dataset.letter)!==-1){o.classList.add('wrong');o.querySelector('.option-icon').textContent='x';}
+    if(q.correct.indexOf(o.dataset.letter)!==-1){o.classList.add('correct');o.querySelector('.option-icon').textContent='✓';}
+    else if(sel.indexOf(o.dataset.letter)!==-1){o.classList.add('wrong');o.querySelector('.option-icon').textContent='✕';}
   });
   showFB(qid,ok,q.feedback);
   document.getElementById('sb-'+qid).style.display='none';
