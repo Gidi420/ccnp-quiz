@@ -687,11 +687,31 @@ function submitDD(qid){
   updateProgress();postSubmit(qid,allOk);
 }
 
+function cleanExplanation(text){
+  // Remove hardcoded letter from "The correct answer is C -- Foo" → "The correct answer is Foo"
+  text=text.replace(/([Tt]he correct answer is\s+)[A-E]\s*--\s*/g,'$1');
+  // Remove hardcoded letter from "The correct answer is C." → "The correct answer."
+  text=text.replace(/([Tt]he correct answer is\s+)[A-E]([.,]?\s*)/g,'The correct answer$2');
+  return text;
+}
 function showFB(qid,ok,feedback){
   var el=document.getElementById('fb-'+qid);
   el.className='feedback '+(ok?'correct':'wrong');
-  var body=ok?feedback.correct:feedback.wrong;
-  var pill=(!ok&&feedback.correctAnswer)?'<br><span class="correct-pill">&#x2713; '+escH(feedback.correctAnswer)+'</span>':'';
+  var body=cleanExplanation(ok?feedback.correct:feedback.wrong);
+  var pillText='';
+  if(!ok){
+    var q=QUESTIONS.find(function(x){return x.id===qid;});
+    if(q&&q.type==='single'&&q.options){
+      var co=q.options.find(function(o){return o.letter===q.correct;});
+      if(co)pillText=co.text;
+    }else if(q&&q.type==='multi'&&q.options){
+      var cos=q.options.filter(function(o){return q.correct.indexOf(o.letter)!==-1;});
+      if(cos.length)pillText=cos.map(function(o){return o.text;}).join(' + ');
+    }else if(feedback.correctAnswer){
+      pillText=feedback.correctAnswer;
+    }
+  }
+  var pill=pillText?'<br><span class="correct-pill">&#x2713; '+escH(pillText)+'</span>':'';
   el.innerHTML='<div class="fb-header">'+(ok?'&#x2713; Correct!':'&#x2717; Incorrect')+'</div>'+
                '<div class="fb-body"><div class="exp-label">Explanation</div>'+
                '<div class="exp-text">'+escH(body)+pill+'</div></div>';
