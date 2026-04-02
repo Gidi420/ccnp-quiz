@@ -346,7 +346,7 @@ function buildBank(){QUESTIONS=BUILTIN.concat(loadCustom());}
 function toggleHints(){
   hintsEnabled=!hintsEnabled;
   document.getElementById('hintTrack').classList.toggle('on',hintsEnabled);
-  if(currentMode==='practice') renderPractice();
+  if(currentMode==='practice') renderCurrentPractice();
 }
 
 function applyHints(text){
