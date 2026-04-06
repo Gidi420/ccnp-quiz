@@ -176,6 +176,34 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .qli-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-light);border-radius:4px;padding:2px 6px;white-space:nowrap;}
 .del-btn{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:2px 5px;border-radius:5px;transition:background .15s;flex-shrink:0;}
 .del-btn:hover{background:var(--red-light);}
+/* INSIGHTS TAB */
+.ins-hero{background:linear-gradient(135deg,var(--accent-light),#f3e8ff);border:1.5px solid #c7d7ff;border-radius:13px;padding:18px 20px;margin-bottom:16px;}
+.ins-hero h2{font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;}
+.ins-hero p{font-size:12px;color:var(--text2);line-height:1.6;}
+.ins-empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;font-weight:600;}
+.ins-empty span{display:block;font-size:36px;margin-bottom:10px;}
+.ins-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.ins-stat{flex:1;min-width:80px;background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:12px 10px;text-align:center;box-shadow:var(--shadow);}
+.ins-stat-num{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1;}
+.ins-stat-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+.ins-section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin:18px 0 10px;}
+.ins-tag-row{background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow);}
+.ins-tag-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ins-tag-name{font-size:13px;font-weight:800;color:var(--text);flex:1;}
+.ins-tag-counts{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.ins-bar-track{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:8px;}
+.ins-bar-fill{height:100%;border-radius:99px;transition:width .4s;}
+.ins-study{font-size:12px;color:var(--text2);line-height:1.6;background:var(--surface2);border-radius:7px;padding:9px 11px;border-left:3px solid var(--accent);}
+.ins-study strong{color:var(--text);display:block;margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+.ins-wrong-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--red);font-family:'JetBrains Mono',monospace;margin:18px 0 10px;}
+.ins-wrong-row{background:#fff;border:1.5px solid var(--red-border);border-radius:10px;padding:11px 14px;margin-bottom:7px;}
+.ins-wrong-q{font-size:12px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:5px;}
+.ins-wrong-meta{display:flex;gap:7px;flex-wrap:wrap;}
+.ins-pill{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;border-radius:5px;padding:2px 7px;}
+.ins-pill-red{color:var(--red);background:var(--red-light);border:1px solid var(--red-border);}
+.ins-pill-blue{color:var(--accent);background:var(--accent-light);}
+.ins-clear-btn{margin-top:18px;background:var(--red-light);color:var(--red);border:1.5px solid var(--red-border);border-radius:8px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+.ins-clear-btn:hover{background:var(--red);color:#fff;}
 /* ALL QUESTIONS TAB */
 .allq-hero{background:linear-gradient(135deg,var(--accent-light),#f3e8ff);border:1.5px solid #c7d7ff;border-radius:13px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
 .allq-hero h2{font-size:18px;font-weight:800;color:var(--accent);margin:0;}
@@ -246,6 +274,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <button class="tab-btn" onclick="switchTab('quiz',this)">&#x1F3AF; Quiz Mode</button>
   <button class="tab-btn" onclick="switchTab('cheat',this)">&#x26A1; Cheat Sheet</button>
   <button class="tab-btn" onclick="switchTab('allq',this)">&#x1F4CB; All Questions</button>
+  <button class="tab-btn" onclick="switchTab('insights',this)">&#x1F4CA; Insights</button>
 </div>
 <div class="quiz-container">
   <div class="tab-content active" id="tab-practice">
@@ -272,6 +301,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
     </div>
     <div id="quizBody"></div>
+  </div>
+  <div class="tab-content" id="tab-insights">
+    <div id="insightsBody"></div>
   </div>
   <div class="tab-content" id="tab-allq">
     <div id="allqBody"></div>
@@ -378,6 +410,14 @@ function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.flo
 function loadCustom(){try{return JSON.parse(localStorage.getItem('ccnp_custom')||'[]');}catch(e){return[];}}
 function saveCustom(qs){localStorage.setItem('ccnp_custom',JSON.stringify(qs));}
 function buildBank(){QUESTIONS=BUILTIN.concat(loadCustom());}
+function loadHistory(){try{return JSON.parse(localStorage.getItem('ccnp_history')||'{}');}catch(e){return{};}}
+function saveHistory(h){localStorage.setItem('ccnp_history',JSON.stringify(h));}
+function recordResult(qid,ok){
+  var h=loadHistory();
+  if(!h[qid])h[qid]={correct:0,wrong:0};
+  if(ok)h[qid].correct++;else h[qid].wrong++;
+  saveHistory(h);
+}
 
 function toggleHints(){
   hintsEnabled=!hintsEnabled;
@@ -418,6 +458,7 @@ function switchTab(name,btn){
   }
   if(name==='cheat') renderCS();
   if(name==='allq') renderAllQ();
+  if(name==='insights') renderInsights();
 }
 
 function renderCS(){
@@ -453,6 +494,110 @@ function filterCS(q){
   document.querySelectorAll('.cs-cat').forEach(function(cat){
     cat.style.display=cat.querySelectorAll('.cs-row:not(.hidden)').length>0?'':'none';
   });
+}
+
+var STUDY_GUIDE={
+  'SD-WAN':'Study the 4 SD-WAN components: vManage (management), vSmart (control plane/OMP), vBond (orchestration/onboarding), vEdge (data plane). Know which plane each belongs to, what protocol each uses, and what DTLS vs IPsec encrypts.',
+  'SD-Access':'Focus on the SD-Access fabric roles: Catalyst Center (intent-based management), ISE (identity/SGT/policy), LISP (control plane EID-RLOC mapping), VXLAN (data plane encapsulation), and the underlay vs overlay distinction.',
+  'Security':'Review AAA (TACACS+ vs RADIUS differences), MACsec (802.1AE/MKA), NGFW vs traditional firewall features, file sandboxing vs retrospection, and REST API security (TLS, timestamps, hashing).',
+  'Automation':'Understand the automation stack: YANG (data modeling), NETCONF (XML/SSH port 830), RESTCONF (HTTP/YANG), gRPC (streaming telemetry). Know JSON vs XML syntax, Python data types (dict/list/tuple), and REST API security practices.',
+  'Network Services':'Study NTP modes: server, broadcast, broadcast client, access-groups, authentication (MD5). For NetFlow: version 9 for Catalyst Center, ip flow ingress/egress on interfaces, flow-export destination with UDP port.',
+  'Routing':'Review BGP attributes and their scope: Weight (local only), Local-preference (entire AS via iBGP), MED (influences inbound from neighbour AS), AS-path (loop prevention). Know BFD usage with dynamic routing protocols.',
+  'Switching':'HSRP: highest priority = active router (default 100). STP root bridge = lowest bridge ID. Know how to force traffic paths by manipulating HSRP priority.',
+  'QoS':'Policing drops excess immediately (no delay, causes TCP retransmit). Shaping buffers and delays traffic (adds delay/jitter). Know DSCP markings and queuing mechanisms.',
+  'LISP':'Know the 4 components: ITR (ingress, looks up mappings), ETR (egress, registers EIDs), Map Server (stores mappings), Map Resolver (answers ITR queries). ETR registers/publishes EIDs.',
+  'Virtualization':'Type 1 hypervisor = bare metal (no host OS). Type 2 = runs on top of host OS. Know VMX (config), VMDK (disk), OVA (zip archive), vNIC (virtual NIC). Containers share host OS kernel.',
+  'BGP':'Study BGP path selection order: Weight > Local-pref > Originate > AS-path > Origin > MED. Know iBGP vs eBGP differences and when to use each attribute.',
+  'NETCONF':'NETCONF uses SSH port 830, XML encoding, YANG models. Know the operations: get, get-config, edit-config, commit. Understand candidate vs running datastore.'
+};
+
+function renderInsights(){
+  buildBank();
+  var body=document.getElementById('insightsBody');
+  var h=loadHistory();
+  var qids=Object.keys(h);
+
+  var html='<div class="ins-hero"><h2>&#x1F4CA; Insights</h2><p>Tracks every answer you submit and shows where to focus your study time.</p></div>';
+
+  if(qids.length===0){
+    html+='<div class="ins-empty"><span>&#x1F4DD;</span>No data yet — answer some questions first and your performance analysis will appear here.</div>';
+    body.innerHTML=html;
+    return;
+  }
+
+  // overall stats
+  var totalAnswered=0,totalCorrect=0,totalWrong=0;
+  qids.forEach(function(id){totalCorrect+=h[id].correct;totalWrong+=h[id].wrong;totalAnswered+=h[id].correct+h[id].wrong;});
+  var pct=Math.round(totalCorrect/totalAnswered*100);
+
+  html+='<div class="ins-stats">';
+  html+='<div class="ins-stat"><div class="ins-stat-num" style="color:var(--accent)">'+totalAnswered+'</div><div class="ins-stat-label">Attempts</div></div>';
+  html+='<div class="ins-stat"><div class="ins-stat-num" style="color:var(--green)">'+totalCorrect+'</div><div class="ins-stat-label">Correct</div></div>';
+  html+='<div class="ins-stat"><div class="ins-stat-num" style="color:var(--red)">'+totalWrong+'</div><div class="ins-stat-label">Wrong</div></div>';
+  html+='<div class="ins-stat"><div class="ins-stat-num" style="color:'+(pct>=70?'var(--green)':'var(--red)')+'">'+pct+'%</div><div class="ins-stat-label">Accuracy</div></div>';
+  html+='</div>';
+
+  // per-tag breakdown
+  var tagStats={};
+  QUESTIONS.forEach(function(q){
+    var rec=h[q.id];if(!rec)return;
+    var tag=q.tag||'Other';
+    if(!tagStats[tag])tagStats[tag]={correct:0,wrong:0};
+    tagStats[tag].correct+=rec.correct;
+    tagStats[tag].wrong+=rec.wrong;
+  });
+
+  var tags=Object.keys(tagStats).sort(function(a,b){
+    var ra=tagStats[a],rb=tagStats[b];
+    var pa=ra.correct/(ra.correct+ra.wrong),pb=rb.correct/(rb.correct+rb.wrong);
+    return pa-pb; // weakest first
+  });
+
+  if(tags.length){
+    html+='<div class="ins-section-title">&#x1F4CC; Performance by Topic</div>';
+    tags.forEach(function(tag){
+      var s=tagStats[tag];
+      var tot=s.correct+s.wrong;
+      var p=Math.round(s.correct/tot*100);
+      var color=p>=80?'var(--green)':p>=50?'var(--yellow)':'var(--red)';
+      var guide=STUDY_GUIDE[tag]||'Review '+tag+' concepts and practice related questions.';
+      html+='<div class="ins-tag-row">';
+      html+='<div class="ins-tag-top"><span class="ins-tag-name">'+tag+'</span><span class="ins-tag-counts">'+s.correct+'/'+tot+' correct &nbsp;|&nbsp; '+p+'%</span></div>';
+      html+='<div class="ins-bar-track"><div class="ins-bar-fill" style="width:'+p+'%;background:'+color+'"></div></div>';
+      html+='<div class="ins-study"><strong>&#x1F4DA; What to study</strong>'+guide+'</div>';
+      html+='</div>';
+    });
+  }
+
+  // most-missed questions
+  var missed=[];
+  QUESTIONS.forEach(function(q){
+    var rec=h[q.id];if(!rec||rec.wrong===0)return;
+    missed.push({q:q,wrong:rec.wrong,correct:rec.correct});
+  });
+  missed.sort(function(a,b){return b.wrong-a.wrong;});
+
+  if(missed.length){
+    html+='<div class="ins-wrong-title">&#x26A0; Most Missed Questions</div>';
+    missed.slice(0,10).forEach(function(m){
+      html+='<div class="ins-wrong-row">';
+      html+='<div class="ins-wrong-q">'+m.q.text.slice(0,120)+(m.q.text.length>120?'…':'')+'</div>';
+      html+='<div class="ins-wrong-meta">';
+      html+='<span class="ins-pill ins-pill-red">&#x274C; '+m.wrong+' wrong</span>';
+      if(m.correct)html+='<span class="ins-pill" style="color:var(--green);background:var(--green-light)">&#x2713; '+m.correct+' correct</span>';
+      if(m.q.tag)html+='<span class="ins-pill ins-pill-blue">'+m.q.tag+'</span>';
+      if(m.q.originalNum)html+='<span class="ins-pill" style="color:var(--muted);background:var(--surface2)">'+m.q.originalNum+'</span>';
+      html+='</div></div>';
+    });
+  }
+
+  html+='<button class="ins-clear-btn" onclick="clearHistory()">&#x1F5D1; Reset All Stats</button>';
+  body.innerHTML=html;
+}
+function clearHistory(){
+  if(!confirm('Reset all performance data?'))return;
+  localStorage.removeItem('ccnp_history');
+  renderInsights();
 }
 
 var allqActiveTag='All';
@@ -582,6 +727,7 @@ function submitAll(){
 }
 function postSubmit(qid,ok){
   correctness[qid]=ok;
+  recordResult(qid,ok);
   if(currentMode!=='practice') return;
   var nw=document.getElementById('nextWrap');if(!nw)return;
   nw.innerHTML='<button class="next-btn" onclick="nextPractice()">Next Question &#x2192;</button>';
