@@ -176,6 +176,28 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .qli-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:var(--accent-light);border-radius:4px;padding:2px 6px;white-space:nowrap;}
 .del-btn{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:2px 5px;border-radius:5px;transition:background .15s;flex-shrink:0;}
 .del-btn:hover{background:var(--red-light);}
+/* ALL QUESTIONS TAB */
+.allq-hero{background:linear-gradient(135deg,var(--accent-light),#f3e8ff);border:1.5px solid #c7d7ff;border-radius:13px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.allq-hero h2{font-size:18px;font-weight:800;color:var(--accent);margin:0;}
+.allq-stats{display:flex;gap:10px;flex-wrap:wrap;}
+.allq-stat{background:#fff;border:1.5px solid #c7d7ff;border-radius:9px;padding:7px 14px;text-align:center;}
+.allq-stat-num{font-size:20px;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace;line-height:1;}
+.allq-stat-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.allq-search-wrap{position:relative;margin-bottom:14px;}
+.allq-search-wrap::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+.allq-search{width:100%;padding:10px 12px 10px 36px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;background:#fff;transition:border-color .15s;box-shadow:var(--shadow);}
+.allq-search:focus{border-color:var(--accent);}
+.allq-filter-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;}
+.allq-filter{background:var(--surface2);border:1.5px solid var(--border);color:var(--muted);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;}
+.allq-filter.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.allq-row{background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:13px 16px;margin-bottom:9px;transition:box-shadow .15s;}
+.allq-row:hover{box-shadow:var(--shadow-md);}
+.allq-row.hidden{display:none;}
+.allq-row-top{display:flex;align-items:flex-start;gap:10px;}
+.allq-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:#fff;background:var(--accent);border-radius:5px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.allq-type-pill{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--purple);background:var(--purple-light);border:1px solid var(--purple-border);border-radius:5px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.allq-tag-pill{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-light);border-radius:5px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.allq-question{font-size:13px;font-weight:600;color:var(--text);line-height:1.55;flex:1;}
 /* PWA */
 .pwa-sec{background:linear-gradient(135deg,var(--accent-light),#f3e8ff);border:1.5px solid #c7d7ff;border-radius:13px;padding:20px;box-shadow:var(--shadow);}
 .pwa-sec h2{font-size:15px;font-weight:700;margin-bottom:7px;color:var(--accent);}
@@ -223,6 +245,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <button class="tab-btn active" onclick="switchTab('practice',this)">&#x1F4DA; Action</button>
   <button class="tab-btn" onclick="switchTab('quiz',this)">&#x1F3AF; Quiz Mode</button>
   <button class="tab-btn" onclick="switchTab('cheat',this)">&#x26A1; Cheat Sheet</button>
+  <button class="tab-btn" onclick="switchTab('allq',this)">&#x1F4CB; All Questions</button>
 </div>
 <div class="quiz-container">
   <div class="tab-content active" id="tab-practice">
@@ -249,6 +272,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
     </div>
     <div id="quizBody"></div>
+  </div>
+  <div class="tab-content" id="tab-allq">
+    <div id="allqBody"></div>
   </div>
   <div class="tab-content" id="tab-cheat">
     <div class="cs-hero">
@@ -391,6 +417,7 @@ function switchTab(name,btn){
     renderQuiz();
   }
   if(name==='cheat') renderCS();
+  if(name==='allq') renderAllQ();
 }
 
 function renderCS(){
@@ -425,6 +452,64 @@ function filterCS(q){
   });
   document.querySelectorAll('.cs-cat').forEach(function(cat){
     cat.style.display=cat.querySelectorAll('.cs-row:not(.hidden)').length>0?'':'none';
+  });
+}
+
+var allqActiveTag='All';
+function renderAllQ(){
+  buildBank();
+  var body=document.getElementById('allqBody');
+  var all=BUILTIN.concat(loadCustom());
+  var tags=['All'];
+  all.forEach(function(q){if(q.tag&&tags.indexOf(q.tag)===-1)tags.push(q.tag);});
+  var typeLabel={single:'Single',multi:'Multi',dragdrop:'Drag & Drop',matching:'Matching'};
+
+  // stats
+  var builtinCount=BUILTIN.length;
+  var customCount=loadCustom().length;
+  var tagCounts={};
+  all.forEach(function(q){tagCounts[q.tag||'Other']=(tagCounts[q.tag||'Other']||0)+1;});
+
+  var html='<div class="allq-hero"><h2>&#x1F4CB; All Questions</h2>';
+  html+='<div class="allq-stats">';
+  html+='<div class="allq-stat"><div class="allq-stat-num">'+all.length+'</div><div class="allq-stat-label">Total</div></div>';
+  html+='<div class="allq-stat"><div class="allq-stat-num">'+builtinCount+'</div><div class="allq-stat-label">Built-in</div></div>';
+  html+='<div class="allq-stat"><div class="allq-stat-num">'+customCount+'</div><div class="allq-stat-label">Custom</div></div>';
+  html+='</div></div>';
+
+  html+='<div class="allq-search-wrap"><input class="allq-search" id="allqSearch" placeholder="Search questions..." oninput="filterAllQ(this.value)"></div>';
+
+  html+='<div class="allq-filter-bar">';
+  tags.forEach(function(t){
+    html+='<button class="allq-filter'+(t===allqActiveTag?' active':'')+'" onclick="setAllQTag(\''+t.replace(/'/g,"\\'")+'\')">'+(t==='All'?'All ('+all.length+')':t+' ('+( tagCounts[t]||0)+')')+'</button>';
+  });
+  html+='</div>';
+
+  html+='<div id="allqList">';
+  all.forEach(function(q,i){
+    var tag=allqActiveTag==='All'||q.tag===allqActiveTag?'':'hidden';
+    html+='<div class="allq-row '+tag+'" data-tag="'+(q.tag||'')+'" data-text="'+(q.text||'').toLowerCase().replace(/"/g,'&quot;')+'">';
+    html+='<div class="allq-row-top">';
+    html+='<span class="allq-num">'+(q.originalNum||('#'+(i+1)))+'</span>';
+    html+='<span class="allq-type-pill">'+(typeLabel[q.type]||q.type)+'</span>';
+    if(q.tag)html+='<span class="allq-tag-pill">'+q.tag+'</span>';
+    html+='<span class="allq-question">'+q.text+'</span>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  body.innerHTML=html;
+}
+function setAllQTag(tag){
+  allqActiveTag=tag;
+  renderAllQ();
+}
+function filterAllQ(val){
+  var v=val.toLowerCase();
+  document.querySelectorAll('#allqList .allq-row').forEach(function(r){
+    var matchTag=allqActiveTag==='All'||r.dataset.tag===allqActiveTag;
+    var matchText=!v||r.dataset.text.indexOf(v)!==-1;
+    r.classList.toggle('hidden',!(matchTag&&matchText));
   });
 }
 
