@@ -883,7 +883,7 @@ function slotClick(qid,gi,si){
 
 function showTrick(qid){
   var q=QUESTIONS.find(function(x){return x.id===qid;});
-  var trick=TRICKS[qid]||(q&&q.trick)||'No trick stored for this question yet.';
+  var trick=TRICKS[qid]||(q&&q.trick)||(q&&q.feedback&&q.feedback.trick)||'No trick stored for this question yet.';
   document.getElementById('tt-'+qid).textContent=trick;
   document.getElementById('tb-'+qid).classList.add('visible');
   var btn=document.getElementById('tr-'+qid);if(btn)btn.style.display='none';
