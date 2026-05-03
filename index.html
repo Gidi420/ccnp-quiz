@@ -463,6 +463,15 @@ function recordResult(qid,ok){
   if(ok)h[qid].correct++;else h[qid].wrong++;
   saveHistory(h);
 }
+// A question is critical if hardcoded OR if history shows ≥3 wrong answers
+// or if you've gotten it wrong more than correct with at least 2 wrong
+function isQuestionCritical(q){
+  if(q.critical) return true;
+  var h=loadHistory();
+  var rec=h[q.id];
+  if(!rec) return false;
+  return rec.wrong>=3 || (rec.wrong>=2 && rec.wrong>rec.correct);
+}
 
 function toggleHints(){
   hintsEnabled=!hintsEnabled;
@@ -614,6 +623,32 @@ function renderInsights(){
     });
   }
 
+  // critical questions panel — hardcoded + history-based
+  var critList=[];
+  QUESTIONS.forEach(function(q){
+    var rec=h[q.id]||{correct:0,wrong:0};
+    var hardcoded=!!q.critical;
+    var histBased=(rec.wrong>=3)||(rec.wrong>=2&&rec.wrong>rec.correct);
+    if(hardcoded||histBased) critList.push({q:q,rec:rec,hardcoded:hardcoded,histBased:histBased});
+  });
+  critList.sort(function(a,b){return (b.rec.wrong||0)-(a.rec.wrong||0);});
+
+  if(critList.length){
+    html+='<div class="ins-wrong-title" style="color:#dc2626">&#x1F534; Critical Questions ('+critList.length+')</div>';
+    html+='<p style="font-size:12px;color:var(--muted);margin:-6px 0 12px">These show a red frame when you encounter them. Hardcoded = flagged as duplicate uploads. Auto = flagged from your answer history.</p>';
+    critList.forEach(function(m){
+      html+='<div class="ins-wrong-row" style="border-left:3px solid #dc2626">';
+      html+='<div class="ins-wrong-q">'+m.q.text.slice(0,120)+(m.q.text.length>120?'…':'')+'</div>';
+      html+='<div class="ins-wrong-meta">';
+      if(m.rec.wrong)html+='<span class="ins-pill ins-pill-red">&#x274C; '+m.rec.wrong+' wrong</span>';
+      if(m.rec.correct)html+='<span class="ins-pill" style="color:var(--green);background:var(--green-light)">&#x2713; '+m.rec.correct+' correct</span>';
+      if(!m.rec.wrong&&!m.rec.correct)html+='<span class="ins-pill" style="color:var(--muted);background:var(--surface2)">Not attempted yet</span>';
+      if(m.q.tag)html+='<span class="ins-pill ins-pill-blue">'+m.q.tag+'</span>';
+      html+='<span class="ins-pill" style="color:#dc2626;background:#fef2f2;font-weight:700">'+(m.hardcoded&&m.histBased?'Hardcoded + Auto':m.hardcoded?'Hardcoded':'Auto-flagged')+'</span>';
+      html+='</div></div>';
+    });
+  }
+
   // most-missed questions
   var missed=[];
   QUESTIONS.forEach(function(q){
@@ -714,7 +749,7 @@ function renderCurrentPractice(){
   var body=document.getElementById('practiceBody');body.innerHTML='';
   var q=activeOrder[currentQIdx];
   var card=document.createElement('div');
-  card.className='question-card'+(q.critical?' critical':'');card.id='card-'+q.id;
+  card.className='question-card'+(isQuestionCritical(q)?' critical':'');card.id='card-'+q.id;
   card.innerHTML=buildQ(q,currentQIdx+1);
   body.appendChild(card);
   var nw=document.createElement('div');
@@ -739,7 +774,7 @@ function startQuiz(count){
   var body=document.getElementById('quizBody');body.innerHTML='';
   activeOrder.forEach(function(q,i){
     var card=document.createElement('div');
-    card.className='question-card'+(q.critical?' critical':'');card.id='card-'+q.id;
+    card.className='question-card'+(isQuestionCritical(q)?' critical':'');card.id='card-'+q.id;
     card.innerHTML=buildQ(q,i+1);
     body.appendChild(card);
   });
@@ -783,7 +818,7 @@ function buildQ(q,num){
   var tag='';
   if(q.type==='dragdrop') tag='<span class="q-tag dd-tag">Tap to Place</span>';
   if(q.type==='multi') tag='<span class="q-tag multi-tag">Choose Two</span>';
-  var critBadge=q.critical?'<div class="critical-badge">🔴 CRITICAL — You\'ve failed this before</div>':'';
+  var critBadge=isQuestionCritical(q)?'<div class="critical-badge">🔴 CRITICAL — You\'ve struggled with this one</div>':'';
   var html=critBadge+'<div class="q-meta"><span class="q-num">Question '+num+'</span><span class="q-tag">'+escH(q.tag)+'</span>'+tag+'</div>'+
            '<div class="question-text">'+applyHints(q.text)+'</div>';
   if(q.type==='single'||q.type==='multi') html+=buildMC(q);
@@ -1090,8 +1125,9 @@ function renderQList(){
     var isC=!BUILTIN.find(function(b){return b.id===q.id;});
     var prev=(q.text.length>65?q.text.slice(0,65)+'...':q.text).replace(/\n/g,' ');
     var ddb=q.type==='dragdrop'?'<span style="background:#f0e6ff;color:#7c3aed;border:1px solid #d8b4fe;font-size:9px;padding:2px 5px;border-radius:3px;font-family:JetBrains Mono,monospace;font-weight:700;white-space:nowrap">D&amp;D</span>':'';
-    var critTag=q.critical?'<span style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:800;white-space:nowrap">🔴 CRITICAL</span>':'';
-    var item=document.createElement('div');item.className='qli'+(q.critical?' qli-critical':'');
+    var isCrit=isQuestionCritical(q);
+    var critTag=isCrit?'<span style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:800;white-space:nowrap">🔴 CRITICAL</span>':'';
+    var item=document.createElement('div');item.className='qli'+(isCrit?' qli-critical':'');
     item.innerHTML='<div class="qli-text"><strong>Q'+(i+1)+'.</strong> '+escH(prev)+'</div>'+ddb+critTag+
       '<span class="qli-tag">'+escH(q.tag)+'</span>'+
       (isC?'<button class="del-btn" onclick="deleteQ(\''+q.id+'\')">&#x2715;</button>':
