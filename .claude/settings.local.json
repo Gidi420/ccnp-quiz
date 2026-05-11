@@ -6,7 +6,8 @@
       "Bash(git push:*)",
       "Bash(gh api:*)",
       "Bash(git --version)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(git rm *)"
     ]
   }
 }
