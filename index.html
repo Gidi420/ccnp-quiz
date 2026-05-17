@@ -294,6 +294,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .setup-options{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
 .setup-opt{background:var(--accent-light);border:1.5px solid #c7d7ff;color:var(--accent);border-radius:10px;padding:14px 18px;font-size:17px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;min-width:64px;}
 .setup-opt:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.setup-opt.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
+.category-section{margin-top:24px;text-align:left;}
+.category-section label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:10px;}
+.category-chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;}
+.cat-chip{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:99px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;}
+.cat-chip:hover{border-color:var(--accent);color:var(--accent);}
+.cat-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.cat-count{font-size:10px;opacity:.75;margin-left:3px;}
 @keyframes slideUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @media(max-width:600px){
@@ -348,11 +356,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <h2>&#x1F3AF; Quiz Mode</h2>
         <p>How many questions?</p>
         <div class="setup-options">
-          <button class="setup-opt" onclick="startQuiz(5)">5</button>
-          <button class="setup-opt" onclick="startQuiz(10)">10</button>
-          <button class="setup-opt" onclick="startQuiz(15)">15</button>
-          <button class="setup-opt" onclick="startQuiz(20)">20</button>
-          <button class="setup-opt" onclick="startQuiz(0)">All</button>
+          <button class="setup-opt" onclick="selectQuizCount(5,this)">5</button>
+          <button class="setup-opt" onclick="selectQuizCount(10,this)">10</button>
+          <button class="setup-opt" onclick="selectQuizCount(15,this)">15</button>
+          <button class="setup-opt" onclick="selectQuizCount(20,this)">20</button>
+          <button class="setup-opt" onclick="selectQuizCount(0,this)">All</button>
+        </div>
+        <div class="category-section">
+          <label>Filter by category</label>
+          <div class="category-chips" id="categoryChips"></div>
+        </div>
+        <div style="margin-top:22px;">
+          <button class="restart-btn" onclick="startQuiz()" style="width:100%;padding:14px;font-size:15px;">Start Quiz &#x2192;</button>
         </div>
       </div>
     </div>
@@ -793,11 +808,46 @@ function renderQuiz(){
   document.getElementById('scoreBanner').classList.remove('visible');
   document.getElementById('quizBody').innerHTML='';
   document.getElementById('quizSetup').style.display='block';
+  quizCount=10;quizCategory='all';
+  document.querySelectorAll('.setup-opt').forEach(function(b,i){b.classList.toggle('selected',i===1);});
+  renderCategoryChips();
 }
-function startQuiz(count){
+var quizCount=10;
+var quizCategory='all';
+function selectQuizCount(n,btn){
+  quizCount=n;
+  document.querySelectorAll('.setup-opt').forEach(function(b){b.classList.remove('selected');});
+  btn.classList.add('selected');
+  renderCategoryChips();
+}
+function selectCategory(tag,el){
+  quizCategory=tag;
+  document.querySelectorAll('.cat-chip').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+}
+function renderCategoryChips(){
+  buildBank();
+  var tags=['all'];
+  QUESTIONS.forEach(function(q){if(q.tag&&tags.indexOf(q.tag)===-1)tags.push(q.tag);});
+  tags.sort(function(a,b){return a==='all'?-1:b==='all'?1:a.localeCompare(b);});
+  var container=document.getElementById('categoryChips');
+  container.innerHTML='';
+  tags.forEach(function(tag){
+    var pool=tag==='all'?QUESTIONS:QUESTIONS.filter(function(q){return q.tag===tag;});
+    var avail=quizCount>0?Math.min(quizCount,pool.length):pool.length;
+    var chip=document.createElement('button');
+    chip.className='cat-chip'+(quizCategory===tag?' active':'');
+    chip.innerHTML=(tag==='all'?'All':'<span>'+tag+'</span>')+'<span class="cat-count">('+avail+')</span>';
+    chip.onclick=function(){selectCategory(tag,chip);};
+    container.appendChild(chip);
+  });
+}
+function startQuiz(){
+  var count=quizCount;
+  var cat=quizCategory;
   currentMode='quiz';
   buildBank();
-  var pool=shuffle(QUESTIONS);
+  var pool=shuffle(cat==='all'?QUESTIONS:QUESTIONS.filter(function(q){return q.tag===cat;}));
   activeOrder=count>0?pool.slice(0,Math.min(count,pool.length)):pool;
   userAnswers={};submitted={};ddState={};correctness={};
   document.getElementById('quizSetup').style.display='none';
