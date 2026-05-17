@@ -812,6 +812,7 @@ function renderQuiz(){
   document.querySelectorAll('.setup-opt').forEach(function(b,i){b.classList.toggle('selected',i===1);});
   renderCategoryChips();
 }
+var RECENT_IDS=['b9','b30','b31','b66','b73','b74','b112','b113','b114','b115','b116','b117','b118','b119','b120','b121','b122','b124','b126','b127','b128','b130','b139','b149','b150','b151','b155','b156','b157','b158','b161','b162','b163','b164','b165','b167','b170','b171','b172','b173','b175','b176','b177','b178','b179','b180','b181','b182','b183','b8'];
 var quizCount=10;
 var quizCategory='all';
 function selectQuizCount(n,btn){
@@ -827,18 +828,25 @@ function selectCategory(tag,el){
 }
 function renderCategoryChips(){
   buildBank();
-  var tags=['all'];
-  QUESTIONS.forEach(function(q){if(q.tag&&tags.indexOf(q.tag)===-1)tags.push(q.tag);});
-  tags.sort(function(a,b){return a==='all'?-1:b==='all'?1:a.localeCompare(b);});
   var container=document.getElementById('categoryChips');
   container.innerHTML='';
-  tags.forEach(function(tag){
-    var pool=tag==='all'?QUESTIONS:QUESTIONS.filter(function(q){return q.tag===tag;});
+  var specials=[
+    {key:'all',label:'All'},
+    {key:'recent',label:'🕐 Recent 50'}
+  ];
+  var tags=[];
+  QUESTIONS.forEach(function(q){if(q.tag&&tags.indexOf(q.tag)===-1)tags.push(q.tag);});
+  tags.sort(function(a,b){return a.localeCompare(b);});
+  specials.concat(tags.map(function(t){return{key:t,label:t};})).forEach(function(item){
+    var pool;
+    if(item.key==='all') pool=QUESTIONS;
+    else if(item.key==='recent') pool=QUESTIONS.filter(function(q){return RECENT_IDS.indexOf(q.id)!==-1;});
+    else pool=QUESTIONS.filter(function(q){return q.tag===item.key;});
     var avail=quizCount>0?Math.min(quizCount,pool.length):pool.length;
     var chip=document.createElement('button');
-    chip.className='cat-chip'+(quizCategory===tag?' active':'');
-    chip.innerHTML=(tag==='all'?'All':'<span>'+tag+'</span>')+'<span class="cat-count">('+avail+')</span>';
-    chip.onclick=function(){selectCategory(tag,chip);};
+    chip.className='cat-chip'+(quizCategory===item.key?' active':'');
+    chip.innerHTML=item.label+'<span class="cat-count">('+avail+')</span>';
+    chip.onclick=function(){selectCategory(item.key,chip);};
     container.appendChild(chip);
   });
 }
@@ -847,7 +855,7 @@ function startQuiz(){
   var cat=quizCategory;
   currentMode='quiz';
   buildBank();
-  var pool=shuffle(cat==='all'?QUESTIONS:QUESTIONS.filter(function(q){return q.tag===cat;}));
+  var pool=shuffle(cat==='all'?QUESTIONS:cat==='recent'?QUESTIONS.filter(function(q){return RECENT_IDS.indexOf(q.id)!==-1;}):QUESTIONS.filter(function(q){return q.tag===cat;}));
   activeOrder=count>0?pool.slice(0,Math.min(count,pool.length)):pool;
   userAnswers={};submitted={};ddState={};correctness={};
   document.getElementById('quizSetup').style.display='none';
