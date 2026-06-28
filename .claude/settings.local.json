@@ -9,7 +9,11 @@
       "Bash(node -e ' *)",
       "Bash(git rm *)",
       "Bash(Select-String -Path index.html -Pattern \"tag:\\\\s*['\\\\\"]\\([^'\\\\\"]+\\)['\\\\\"]\")",
-      "Bash(Select-Object -First 50)"
+      "Bash(Select-Object -First 50)",
+      "Bash(find \"C:\\\\Program Files \\(x86\\)\\\\VCE Exam Simulator Demo\" -type f 2>/dev/null && find \"C:\\\\Users\\\\Gidi\" -name \"*.vce\" 2>/dev/null | head -20)",
+      "Bash(xxd \"C:\\\\Users\\\\Gidi\\\\Documents\\\\ccnp enarsi exams\\\\CCNP Dump \\(1\\).vce\")",
+      "Bash(python -c ' *)",
+      "PowerShell(Start-Process \"C:\\\\Program Files \\(x86\\)\\\\VCE Exam Simulator Demo\\\\designer.exe\" -ArgumentList \"`\"C:\\\\Users\\\\Gidi\\\\Documents\\\\ccnp enarsi exams\\\\CCNP Dump \\(1\\).vce`\"\")"
     ]
   }
 }
