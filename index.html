@@ -106,6 +106,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .question-card.critical.answered-wrong{border-color:var(--red);box-shadow:0 0 0 4px rgba(220,38,38,0.15),var(--shadow);}
 .critical-badge{display:inline-flex;align-items:center;gap:6px;background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626;font-size:11px;font-weight:800;padding:4px 12px;border-radius:99px;letter-spacing:.2px;margin-bottom:10px;width:fit-content;}
 .q-meta{display:flex;align-items:center;gap:7px;margin-bottom:11px;flex-wrap:wrap;}
+.exhibit-box{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;overflow-x:auto;}
+.exhibit-box svg{max-width:100%;height:auto;display:block;margin:0 auto;}
+.exhibit-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;display:block;}
+.exhibit-pre{background:#1e293b;color:#e2e8f0;padding:10px 12px;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.6;white-space:pre;overflow-x:auto;margin-top:10px;}
 .q-num{background:var(--accent-light);border:1px solid #c7d7ff;border-radius:5px;padding:2px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--accent);font-weight:700;}
 .q-tag{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;}
 .multi-tag{background:var(--yellow-light);border-color:#fde68a;color:var(--yellow);}
@@ -712,6 +716,123 @@ var ENARSI_TRICKS={
   'e202':'Redistribution loop with mutual redistribution: BGP↔EIGRP on R3 and EIGRP↔OSPF on R1 creates a loop — 10.1.1.0/24 from BGP leaks into EIGRP, then into OSPF, then back into EIGRP on R3 as a worse route, causing constant route flap. Fix: tag the prefix at the first redistribution point (BGP→EIGRP on R3), then deny the tagged prefix when redistributing into OSPF on R1. Tagging + route-map deny at the re-entry point breaks the loop.'
 };
 
+var EXHIBITS={
+'e198':`<svg viewBox="0 0 420 310" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif">
+  <ellipse cx="210" cy="52" rx="72" ry="28" fill="#eff3ff" stroke="#4f46e5" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <text x="210" y="47" font-size="12" font-weight="700" fill="#4f46e5" text-anchor="middle">AS 1000</text>
+  <text x="210" y="63" font-size="10" fill="#374151" text-anchor="middle">Internet Cloud</text>
+  <text x="164" y="83" font-size="9" fill="#6b7280" text-anchor="middle">(.10)</text>
+  <text x="256" y="83" font-size="9" fill="#6b7280" text-anchor="middle">(.10)</text>
+  <ellipse cx="85" cy="178" rx="60" ry="27" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="85" y="173" font-size="12" font-weight="700" fill="#059669" text-anchor="middle">ISP-1</text>
+  <text x="85" y="188" font-size="10" fill="#374151" text-anchor="middle">AS 100  (.1)</text>
+  <ellipse cx="335" cy="178" rx="60" ry="27" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="335" y="173" font-size="12" font-weight="700" fill="#059669" text-anchor="middle">ISP-2</text>
+  <text x="335" y="188" font-size="10" fill="#374151" text-anchor="middle">AS 200  (.2)</text>
+  <ellipse cx="210" cy="278" rx="90" ry="26" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="210" y="273" font-size="11" font-weight="700" fill="#ea580c" text-anchor="middle">AS 64555 — Customer Edge</text>
+  <text x="210" y="289" font-size="9" fill="#6b7280" text-anchor="middle">E0/0 (.11)  ·  E0/1 (.11)</text>
+  <line x1="152" y1="76" x2="107" y2="153" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="107" y="110" font-size="8" fill="#374151" text-anchor="middle">192.168.101.0/24</text>
+  <line x1="268" y1="76" x2="313" y2="153" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="313" y="110" font-size="8" fill="#374151" text-anchor="middle">192.168.102.0/24</text>
+  <line x1="100" y1="202" x2="162" y2="254" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="108" y="237" font-size="8" fill="#374151" text-anchor="middle">192.168.1.0/24</text>
+  <line x1="320" y1="202" x2="258" y2="254" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="312" y="237" font-size="8" fill="#374151" text-anchor="middle">192.168.2.0/24</text>
+</svg>`,
+'e199':`<svg viewBox="0 0 380 72" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif;width:100%;margin-bottom:10px">
+  <rect x="5" y="18" width="56" height="30" rx="6" fill="#eff3ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="33" y="37" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">R4</text>
+  <ellipse cx="190" cy="33" rx="60" ry="23" fill="#f0f4ff" stroke="#4f46e5" stroke-width="1.5" stroke-dasharray="3 2"/>
+  <text x="190" y="30" font-size="10" fill="#4f46e5" text-anchor="middle">OSPF  Area 0</text>
+  <rect x="319" y="18" width="56" height="30" rx="6" fill="#eff3ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="347" y="37" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">R3</text>
+  <line x1="61" y1="33" x2="130" y2="33" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="96" y="27" font-size="8" fill="#6b7280" text-anchor="middle">E0/0</text>
+  <line x1="250" y1="33" x2="319" y2="33" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="284" y="27" font-size="8" fill="#6b7280" text-anchor="middle">E0/1</text>
+</svg>
+<div class="exhibit-pre">R4
+service timestamps debug uptime
+service timestamps log datetime msec
+!
+clock timezone EET 2 0
+end
+
+R4#show clock
+*02:26:57.608 EET Sun Nov 15 2020
+
+R4#debug ip packet
+IP packet debugging is on
+2d21h:IP: s=10.2.2.1 (Ethernet0/1), d=224.0.0.5, len 80, input feature
+2d21h:IP: s=10.2.2.1 (Ethernet0/1), rcvd 0</div>`,
+'e200':`<svg viewBox="0 0 380 235" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif">
+  <rect x="155" y="10" width="70" height="42" rx="8" fill="#eff3ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="190" y="29" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">RR</text>
+  <text x="190" y="44" font-size="9" fill="#374151" text-anchor="middle">(.4)</text>
+  <text x="148" y="52" font-size="8" fill="#6b7280" text-anchor="end">e0/1</text>
+  <text x="187" y="58" font-size="8" fill="#6b7280" text-anchor="middle">e0/0</text>
+  <text x="232" y="52" font-size="8" fill="#6b7280">e0/2</text>
+  <line x1="165" y1="52" x2="75" y2="168" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="97" y="108" font-size="8.5" fill="#374151" text-anchor="middle">10.1.1.0/24</text>
+  <line x1="190" y1="52" x2="190" y2="168" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="216" y="112" font-size="8.5" fill="#374151">10.1.2.0/24</text>
+  <line x1="215" y1="52" x2="305" y2="168" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="276" y="108" font-size="8.5" fill="#374151" text-anchor="middle">10.1.3.0/24</text>
+  <rect x="22" y="168" width="108" height="42" rx="8" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="76" y="186" font-size="12" font-weight="700" fill="#059669" text-anchor="middle">ASBR1</text>
+  <text x="76" y="201" font-size="9" fill="#374151" text-anchor="middle">e0/0  (.1)</text>
+  <rect x="136" y="168" width="108" height="42" rx="8" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="190" y="186" font-size="12" font-weight="700" fill="#059669" text-anchor="middle">ASBR2</text>
+  <text x="190" y="201" font-size="9" fill="#374151" text-anchor="middle">e0/0  (.2)</text>
+  <rect x="250" y="168" width="108" height="42" rx="8" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="304" y="186" font-size="12" font-weight="700" fill="#059669" text-anchor="middle">ASBR3</text>
+  <text x="304" y="201" font-size="9" fill="#374151" text-anchor="middle">e0/0  (.3)</text>
+</svg>`,
+'e201':`<svg viewBox="0 0 380 218" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif">
+  <rect x="145" y="8" width="90" height="36" rx="7" fill="#eff3ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="190" y="31" font-size="13" font-weight="700" fill="#2563eb" text-anchor="middle">DENVER</text>
+  <line x1="190" y1="44" x2="190" y2="102" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="218" y="76" font-size="8.5" fill="#374151">10.40.1.0/30</text>
+  <ellipse cx="190" cy="120" rx="52" ry="22" fill="#faf5ff" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <text x="190" y="124" font-size="12" font-weight="700" fill="#7c3aed" text-anchor="middle">WAN</text>
+  <line x1="142" y1="132" x2="98" y2="170" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="90" y="158" font-size="8.5" fill="#374151" text-anchor="end">10.139.2.0/30</text>
+  <line x1="238" y1="132" x2="282" y2="170" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="290" y="158" font-size="8.5" fill="#374151">10.2.191.0/30</text>
+  <rect x="28" y="170" width="90" height="36" rx="7" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="73" y="193" font-size="13" font-weight="700" fill="#059669" text-anchor="middle">MIAMI</text>
+  <rect x="262" y="170" width="90" height="36" rx="7" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="307" y="193" font-size="13" font-weight="700" fill="#059669" text-anchor="middle">RALEIGH</text>
+</svg>`,
+'e202':`<svg viewBox="0 0 380 295" xmlns="http://www.w3.org/2000/svg" style="font-family:sans-serif">
+  <ellipse cx="192" cy="110" rx="158" ry="82" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.6"/>
+  <text x="318" y="58" font-size="10" fill="#059669">EIGRP</text>
+  <ellipse cx="192" cy="238" rx="92" ry="48" fill="#eff3ff" stroke="#4f46e5" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.6"/>
+  <text x="254" y="206" font-size="9" fill="#4f46e5">BGP AS64512</text>
+  <rect x="22" y="32" width="68" height="40" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <text x="56" y="51" font-size="12" font-weight="700" fill="#ea580c" text-anchor="middle">R1</text>
+  <text x="56" y="65" font-size="8" fill="#6b7280" text-anchor="middle">OSPF↔EIGRP</text>
+  <rect x="290" y="32" width="68" height="40" rx="7" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+  <text x="324" y="51" font-size="12" font-weight="700" fill="#059669" text-anchor="middle">R2</text>
+  <text x="324" y="65" font-size="8" fill="#6b7280" text-anchor="middle">EIGRP</text>
+  <rect x="157" y="133" width="70" height="40" rx="7" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+  <text x="192" y="152" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">R3</text>
+  <text x="192" y="166" font-size="8" fill="#6b7280" text-anchor="middle">BGP↔EIGRP</text>
+  <rect x="157" y="218" width="70" height="40" rx="7" fill="#eff3ff" stroke="#4f46e5" stroke-width="1.5"/>
+  <text x="192" y="237" font-size="12" font-weight="700" fill="#4f46e5" text-anchor="middle">R4</text>
+  <text x="192" y="251" font-size="8" fill="#6b7280" text-anchor="middle">BGP</text>
+  <text x="192" y="278" font-size="10" fill="#374151" text-anchor="middle">10.1.1.0/24</text>
+  <line x1="90" y1="52" x2="290" y2="52" stroke="#059669" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <line x1="60" y1="72" x2="162" y2="136" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="82" y="115" font-size="9" fill="#ea580c">OSPF</text>
+  <line x1="295" y1="72" x2="220" y2="136" stroke="#059669" stroke-width="1.5" stroke-dasharray="4 2"/>
+  <line x1="192" y1="173" x2="192" y2="218" stroke="#4f46e5" stroke-width="1.5"/>
+  <line x1="192" y1="258" x2="192" y2="270" stroke="#374151" stroke-width="1" stroke-dasharray="2 1"/>
+</svg>`
+};
+
 var QUESTIONS=[],activeOrder=[],userAnswers={},submitted={},ddState={},correctness={};
 var hintsEnabled=false;
 var currentQIdx=0;
@@ -1176,7 +1297,8 @@ function buildQ(q,num){
   if(q.type==='dragdrop') tag='<span class="q-tag dd-tag">Tap to Place</span>';
   if(q.type==='multi') tag='<span class="q-tag multi-tag">Choose Two</span>';
   var critBadge=isQuestionCritical(q)?'<div class="critical-badge">🔴 CRITICAL — You\'ve struggled with this one</div>':'';
-  var html=critBadge+'<div class="q-meta"><span class="q-num">Question '+num+'</span><span class="q-tag">'+escH(q.tag)+'</span>'+tag+'</div>'+
+  var exhibitHtml=EXHIBITS[q.id]?'<div class="exhibit-box"><span class="exhibit-label">Exhibit</span>'+EXHIBITS[q.id]+'</div>':'';
+  var html=critBadge+exhibitHtml+'<div class="q-meta"><span class="q-num">Question '+num+'</span><span class="q-tag">'+escH(q.tag)+'</span>'+tag+'</div>'+
            '<div class="question-text">'+applyHints(q.text)+'</div>';
   if(q.type==='single'||q.type==='multi') html+=buildMC(q);
   else if(q.type==='matching') html+=buildMatch(q);
